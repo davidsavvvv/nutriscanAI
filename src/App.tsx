@@ -1085,34 +1085,24 @@ export default function App() {
                 </div>
               )}
 
-              {/* STEP 12: EMAIL REGISTRATION */}
+              {/* STEP 12: EMAIL REGISTRATION VIA SUPABASE */}
               {boardingStep === 12 && (
                 <div className="space-y-6 animate-fade-in text-center">
                   <div>
-                    <span className="text-[#00d4aa] text-xs font-bold font-mono tracking-widest uppercase">Almost Done</span>
-                    <h3 className="text-2xl font-extrabold text-white mt-1">Where should we send your plan?</h3>
-                    <p className="text-xs text-slate-400">Please enter your email address to save your customized profile metrics securely.</p>
+                    <span className="text-[#00d4aa] text-xs font-bold font-mono tracking-widest uppercase">Presque Terminé</span>
+                    <h3 className="text-2xl font-extrabold text-white mt-1">Créez votre compte pour sauvegarder votre plan</h3>
+                    <p className="text-xs text-slate-400">Vos données personnalisées seront sécurisées dans votre tableau de bord.</p>
                   </div>
 
-                  <div className="bg-[#1c1c1c] border border-[#232323] rounded-2xl p-6 text-center space-y-4">
-                      <input 
-                        type="email" 
-                        value={profileEmail}
-                        onChange={(e) => setProfileEmail(e.target.value)}
-                        placeholder="you@example.com"
-                        className="w-full bg-[#0d0d0d] border border-[#2a2a2a] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#00d4aa] transition-colors"
-                      />
+                  <div className="text-left w-full mx-auto pb-4">
+                    <Login onSuccess={() => {
+                      // Completes the onboarding flow via Supabase Login
+                      handleFinishOnboarding();
+                    }} />
                   </div>
 
-                  <div className="flex gap-4 pt-2">
-                    <button onClick={() => setBoardingStep(11)} className="flex-1 py-3 hover:bg-white/5 border border-[#2a2a2a] text-slate-300 font-bold rounded-xl transition-all">Back</button>
-                    <button 
-                      onClick={handleFinishOnboarding}
-                      disabled={!profileEmail.includes('@')}
-                      className="flex-1 bg-gradient-to-r from-[#00d4aa] to-[#059669] disabled:opacity-40 hover:brightness-110 active:scale-95 text-black font-extrabold py-3 rounded-xl transition-all text-xs uppercase tracking-wider"
-                    >
-                      Start Scanning For Free
-                    </button>
+                  <div className="flex justify-center flex-col pt-2 max-w-md mx-auto">
+                    <button onClick={() => setBoardingStep(11)} className="w-full py-3 hover:bg-white/5 border border-[#2a2a2a] text-slate-300 font-bold rounded-xl transition-all">Retour aux questions</button>
                   </div>
                 </div>
               )}
