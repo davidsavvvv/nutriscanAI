@@ -3,6 +3,7 @@ import { SAMPLE_PRODUCTS } from "./data";
 import { ScanResult, SampleProduct } from "./types";
 import ProductCard from "./components/ProductCard";
 import ScannerTab from "./components/ScannerTab";
+import { Login } from "./components/Login";
 import { 
   Sparkles, ShieldCheck, Zap, Layers, Trophy, Flame, Camera, Upload, 
   Trash2, CheckCircle, Calendar, AlertCircle, RefreshCw, ChevronRight, 
@@ -18,7 +19,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   
   // App views: 'landing' | 'dashboard'
-  const [viewMode, setViewMode] = useState<"landing" | "dashboard">("landing");
+  const [viewMode, setViewMode] = useState<"landing" | "dashboard" | "login">("landing");
   
   // Sidebar tab index for dashboard
   const [activeTab, setActiveTab] = useState<"home" | "history" | "upgrade">("home");
@@ -463,6 +464,14 @@ export default function App() {
           <div className="flex items-center gap-4">
             {viewMode === "landing" ? (
               <>
+                <button 
+                  onClick={() => {
+                    setViewMode("login");
+                  }} 
+                  className="text-sm font-bold text-white hover:text-[#00d4aa] transition-colors duration-200"
+                >
+                  Connexion
+                </button>
                 <button 
                   onClick={() => {
                     setViewMode("dashboard");
@@ -1146,15 +1155,6 @@ export default function App() {
                 >
                   Scan Your First Meal Free
                 </button>
-                <button
-                  onClick={() => {
-                    setViewMode("dashboard");
-                    setActiveTab("home");
-                  }}
-                  className="w-full sm:w-auto px-8 py-4 rounded-full bg-[#1a1a1a] border border-[#2b2b2b] hover:border-slate-400 active:scale-95 text-white font-bold text-xs uppercase tracking-wider cursor-pointer transition-all"
-                >
-                  Direct Live Sandbox
-                </button>
               </div>
 
               <div className="flex items-center justify-center gap-6 pt-4 text-[11px] text-slate-500 font-mono">
@@ -1481,6 +1481,16 @@ export default function App() {
             </div>
           </section>
 
+        </div>
+      )}
+
+      {/* VIEW 3: LOGIN / SIGN UP */}
+      {viewMode === "login" && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 flex items-center justify-center min-h-[80vh]">
+          <Login onSuccess={() => {
+            setViewMode("dashboard");
+            setActiveTab("home");
+          }} />
         </div>
       )}
 
