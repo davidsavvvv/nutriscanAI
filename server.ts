@@ -65,46 +65,48 @@ async function startServer() {
       const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
       const resolvedMimeType = mimeType || "image/jpeg";
 
-      const prompt = `You are NutriScan AI, an expert AI nutrition product scanner specialized in industrial food products, fitness snacks, energy drinks, sugar-free beverages, and packaged foods.
-Analyze the provided product image and identify its details.
+      const prompt = `Tu es un expert en nutrition et en science alimentaire, spécialisé dans les produits vendus en France.
+Quand l'utilisateur envoie une photo d'un aliment (produit industriel, fruit, légume, viande, plat cuisiné...), tu dois analyser et retourner une fiche nutritionnelle complète et détaillée.
 
-Please work extremely well with:
-- Monster Energy (Ultra series, original, etc.)
-- Coca-Cola Zero / Pepsi Max / zero sugar sodas
-- Protein bars (Quest, Grenade, Barebells, Clif, etc.)
-- Protein shakes / pre-made fitness drinks
-- Zero sugar drinks and electrolyte formulations
-- Gym snacks (beef jerky, rice cakes, nuts)
-- Supermarket packaged foods and processed items
+- Toujours répondre en français
+- Si c'est un produit industriel français utilise les vraies valeurs nutritionnelles connues
+- Si c'est un aliment brut utilise les valeurs officielles du Ciqual
+- Ne jamais inventer des données, toujours être précis et honnête
+- Mentionner les allergènes présents dans la composition
 
-Rules:
-1. Be fast, direct, and sporty. Keep explanations highly concise and fitness-oriented.
-2. Prefer realistic, accurate estimations from well-known commercial database metrics if you can identify the exact product.
-3. Detect "zero sugar", "diet", "light", "ultra", or similar health terms if present.
-4. Explain health concerns simply, detailing artificial sweeteners, heavy sodium, or preservative impacts.
-5. Provide a realistic better_alternative that matches the physical item category (e.g. if scan is Monster, suggest natural tea or sparkling water + light caffeine; if standard high-fat potato chips, suggest high-protein crisps or roasted chickpeas).
-6. health_score logic: 9-10 = excellent (unprocessed, perfect diet food), 7-8 = good (decent, mild sweeteners), 5-6 = acceptable (typical fitness bars/drinks, heavily sweetened), 3-4 = poor (lots of empty carbs and preservatives), 1-2 = very unhealthy (full sugar sodas, processed trans-fats snack).
-7. fitness_score logic: High protein, low sugar, low fats, clean energy compounds increase this score. Heavy sugar, zero protein, high trans-fats lower it.
-
-Return the response EXACTLY in this JSON format:
+Return the response EXACTLY in this JSON format mapping exactly to the concepts requested:
 {
-  "brand": "Brand Name",
-  "product_name": "Product Name",
-  "flavor": "Flavor/version info",
-  "category": "Product Category (e.g. Energy Drink, Protein Bar, Carbonated Beverage)",
-  "estimated_weight_or_volume": "Estimated size/weight (e.g. 500ml, 60g)",
-  "calories": "Calories (e.g. 10 kcal, 220 kcal)",
-  "protein": "Protein (e.g. 0g, 20g)",
-  "carbs": "Total Carbs (e.g. 3g, 15g)",
-  "sugar": "Sugar (e.g. 0g, 2g)",
-  "fat": "Fat content (e.g. 0g, 7g)",
-  "caffeine": "Caffeine content if applicable (e.g. 150mg, 0mg, or 'N/A')",
-  "sweeteners": ["Sweetener1", "Sweetener2"],
-  "health_score": "X/10",
-  "fitness_score": "Y/10",
-  "summary": "1-2 sentences in a sharp, modern, gym-friendly tone.",
-  "better_alternative": "Name of healthier or cleaner alternative product",
-  "confidence": "95%"
+  "product_name": "Nom exact du produit ou de l'aliment détecté",
+  "nutrition_100g": {
+    "calories": "XX kcal",
+    "protein": "XX g",
+    "carbs": "XX g",
+    "sugar": "XX g",
+    "fat": "XX g",
+    "saturated_fat": "XX g",
+    "fiber": "XX g",
+    "salt": "XX g",
+    "water": "XX g"
+  },
+  "composition": "Liste tous les ingrédients détectés ou connus. Mentionne les additifs et allergènes.",
+  "benefits": ["bienfait 1", "bienfait 2", "bienfait 3"],
+  "alerts": ["point de vigilance 1", "point de vigilance 2"],
+  "vitamins_minerals": ["Vitamine X → rôle dans le corps"],
+  "objectives": {
+    "weight_loss": "✅ Oui / ⚠️ Avec modération / ❌ Non",
+    "muscle_gain": "✅ Oui / ⚠️ Avec modération / ❌ Non",
+    "general_health": "✅ Oui / ⚠️ Avec modération / ❌ Non",
+    "sport": "✅ Oui / ⚠️ Avec modération / ❌ Non",
+    "kids": "✅ Oui / ⚠️ Avec modération / ❌ Non"
+  },
+  "origin": "France / Europe / Monde",
+  "transformation_level": "🟢 Peu transformé / 🟡 Transformé / 🔴 Ultra-transformé",
+  "health_score": "Donne un score de 1 à 5 sous la forme ⭐ 1/5 à ⭐⭐⭐⭐⭐ 5/5",
+  "health_score_explanation": "Explication du score",
+  "custom_advice": "Une phrase drôle et motivante adaptée au score.",
+  "brand": "Marque (si applicable)",
+  "category": "Catégorie",
+  "confidence": "Pourcentage de confiance en l'analyse"
 }`;
 
       const response = await client.models.generateContent({
@@ -123,42 +125,62 @@ Return the response EXACTLY in this JSON format:
           responseSchema: {
             type: Type.OBJECT,
             properties: {
-              brand: { type: Type.STRING },
               product_name: { type: Type.STRING },
-              flavor: { type: Type.STRING },
-              category: { type: Type.STRING },
-              estimated_weight_or_volume: { type: Type.STRING },
-              calories: { type: Type.STRING },
-              protein: { type: Type.STRING },
-              carbs: { type: Type.STRING },
-              sugar: { type: Type.STRING },
-              fat: { type: Type.STRING },
-              caffeine: { type: Type.STRING },
-              sweeteners: { type: Type.ARRAY, items: { type: Type.STRING } },
+              nutrition_100g: {
+                type: Type.OBJECT,
+                properties: {
+                  calories: { type: Type.STRING },
+                  protein: { type: Type.STRING },
+                  carbs: { type: Type.STRING },
+                  sugar: { type: Type.STRING },
+                  fat: { type: Type.STRING },
+                  saturated_fat: { type: Type.STRING },
+                  fiber: { type: Type.STRING },
+                  salt: { type: Type.STRING },
+                  water: { type: Type.STRING },
+                },
+                required: ["calories", "protein", "carbs", "sugar", "fat", "saturated_fat", "fiber", "salt", "water"],
+              },
+              composition: { type: Type.STRING },
+              benefits: { type: Type.ARRAY, items: { type: Type.STRING } },
+              alerts: { type: Type.ARRAY, items: { type: Type.STRING } },
+              vitamins_minerals: { type: Type.ARRAY, items: { type: Type.STRING } },
+              objectives: {
+                type: Type.OBJECT,
+                properties: {
+                  weight_loss: { type: Type.STRING },
+                  muscle_gain: { type: Type.STRING },
+                  general_health: { type: Type.STRING },
+                  sport: { type: Type.STRING },
+                  kids: { type: Type.STRING },
+                },
+                required: ["weight_loss", "muscle_gain", "general_health", "sport", "kids"],
+              },
+              origin: { type: Type.STRING },
+              transformation_level: { type: Type.STRING },
               health_score: { type: Type.STRING },
-              fitness_score: { type: Type.STRING },
-              summary: { type: Type.STRING },
-              better_alternative: { type: Type.STRING },
+              health_score_explanation: { type: Type.STRING },
+              custom_advice: { type: Type.STRING },
+              brand: { type: Type.STRING },
+              category: { type: Type.STRING },
               confidence: { type: Type.STRING },
             },
             required: [
-              "brand",
               "product_name",
-              "flavor",
-              "category",
-              "estimated_weight_or_volume",
-              "calories",
-              "protein",
-              "carbs",
-              "sugar",
-              "fat",
-              "caffeine",
-              "sweeteners",
+              "nutrition_100g",
+              "composition",
+              "benefits",
+              "alerts",
+              "vitamins_minerals",
+              "objectives",
+              "origin",
+              "transformation_level",
               "health_score",
-              "fitness_score",
-              "summary",
-              "better_alternative",
-              "confidence",
+              "health_score_explanation",
+              "custom_advice",
+              "brand",
+              "category",
+              "confidence"
             ],
           },
         },

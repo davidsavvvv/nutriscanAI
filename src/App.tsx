@@ -66,11 +66,39 @@ export default function App() {
   const [cookieConsent, setCookieConsent] = useState(true);
   const [analysisProgress, setAnalysisProgress] = useState(0);
 
+  const normalizeFrenchResultToLegacy = (res: any): ScanResult => {
+    if (res.calories !== undefined) return res;
+    
+    return {
+      ...res,
+      brand: res.brand || "Aucune",
+      product_name: res.product_name || "Inconnu",
+      flavor: res.flavor || "",
+      category: res.category || "Produit",
+      estimated_weight_or_volume: "Standard",
+      calories: res.nutrition_100g?.calories?.toString().replace(/kcal/i, '').trim() || "0",
+      protein: res.nutrition_100g?.protein?.toString().replace(/g/i, '').trim() || "0",
+      carbs: res.nutrition_100g?.carbs?.toString().replace(/g/i, '').trim() || "0",
+      sugar: res.nutrition_100g?.sugar?.toString().replace(/g/i, '').trim() || "0",
+      fat: res.nutrition_100g?.fat?.toString().replace(/g/i, '').trim() || "0",
+      caffeine: "N/A",
+      sweeteners: res.alerts ? res.alerts.filter((a: string) => a.toLowerCase().includes("édulcorant")) : [],
+      health_score: res.health_score ? res.health_score.replace(/[^0-9]/g, '').substring(0, 1) + "/5" : "3/5",
+      fitness_score: res.objectives?.muscle_gain?.includes("Oui") ? "8/10" : "5/10",
+      summary: res.custom_advice,
+      better_alternative: "N/A",
+      confidence: res.confidence || "90%"
+    };
+  };
+
   // Load cache states on initial client hydration
   useEffect(() => {
     try {
       const storedHistory = localStorage.getItem("ns_history_v2");
-      if (storedHistory) setHistory(JSON.parse(storedHistory));
+      if (storedHistory) {
+        const parsed = JSON.parse(storedHistory);
+        setHistory(parsed.map(normalizeFrenchResultToLegacy));
+      }
       
       const storedProfile = localStorage.getItem("ns_profile_active");
       if (storedProfile) {
@@ -294,8 +322,9 @@ export default function App() {
   };
 
   const handleScannerTabComplete = (result: ScanResult) => {
+    const normalized = normalizeFrenchResultToLegacy(result);
     const enriched = {
-      ...result,
+      ...normalized,
       id: `scan-${Date.now()}`,
       scannedAt: new Date().toISOString()
     };
@@ -1615,73 +1644,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* FAST TRIAL SCANNER BLOCK */}
-                  <div className="bg-[#141414] border border-[#2a2a2a] p-6 sm:p-8 rounded-[32px] space-y-6 shadow-sm">
-                    <div>
-                      <h3 className="text-xl font-bold font-display text-white">🎯 Quick Scan Trial Sandbox</h3>
-                      <p className="text-xs text-slate-400 mt-1">
-                        Don't have a gym snack nearby? Tap any of our test biological compounds to instantly simulate detailed AI scans.
-                      </p>
-                    </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                      {SAMPLE_PRODUCTS.map((prod) => (
-                        <div key={prod.id} className="relative group bg-[#1c1c1c] border border-slate-800 rounded-2xl p-4 transition-all hover:scale-[1.02] hover:border-[#00d4aa] cursor-pointer flex flex-col justify-between">
-                          <div className="flex justify-between items-start">
-                            <span className="text-[9px] uppercase tracking-wider bg-slate-800 text-slate-300 font-bold px-2 py-0.5 rounded-full">
-                              ⭐ {prod.badge}
-                            </span>
-                            <span className="text-xs font-bold text-[#00d4aa] font-mono">HS {prod.health_score}</span>
-                          </div>
-                          
-                          <div className="py-6 text-center text-4xl select-none min-h-[80px] flex items-center justify-center">
-                            {prod.illustrationType === "energy" ? "🥤" : prod.illustrationType === "cola" ? "🥫" : prod.illustrationType === "bar" ? "🍫" : prod.illustrationType === "shake" ? "🥛" : "🍟"}
-                          </div>
-
-                          <div className="space-y-2">
-                            <div>
-                              <span className="text-[9px] font-mono text-slate-500 uppercase block">{prod.brand}</span>
-                              <h4 className="text-sm font-extrabold text-white line-clamp-1">{prod.product_name}</h4>
-                            </div>
-                            <button
-                              onClick={() => handleScanSimulation(prod.brand, prod.product_name)}
-                              className="w-full bg-[#2a2a2a] hover:bg-[#00d4aa] hover:text-black text-slate-300 font-bold text-[11px] py-1.5 rounded-lg transition-colors cursor-pointer block"
-                            >
-                              Scan Item
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-
-                      {/* CUSTOM AVOCADO SUPER DIET (Specific hardcoded prompt require) */}
-                      <div className="relative group bg-gradient-to-b from-[#1c1c1c] to-black border border-slate-800 rounded-2xl p-4 transition-all hover:scale-[1.02] hover:border-[#00d4aa] cursor-pointer flex flex-col justify-between">
-                        <div className="flex justify-between items-start">
-                          <span className="text-[9px] uppercase tracking-wider bg-emerald-900 border border-emerald-800 text-emerald-200 font-bold px-2 py-0.5 rounded-full">
-                            🥑 Fresh Swap Selection
-                          </span>
-                          <span className="text-xs font-bold text-[#00d4aa] font-mono">HS 9.5</span>
-                        </div>
-                        
-                        <div className="py-6 text-center text-4xl select-none min-h-[80px] flex items-center justify-center">
-                          🍳
-                        </div>
-
-                        <div className="space-y-2">
-                          <div>
-                            <span className="text-[9px] font-mono text-slate-500 uppercase block">Artisan Wholefoods</span>
-                            <h4 className="text-sm font-extrabold text-white line-clamp-1">Avocado Toast & Egg</h4>
-                          </div>
-                          <button
-                            onClick={() => handleScanSimulation("Artisan Kitchen", "Avocado Toast & Egg")}
-                            className="w-full bg-[#00d4aa]/10 hover:bg-[#00d4aa] border border-[#00d4aa]/20 hover:text-black text-[#00d4aa] font-black text-[11px] py-1.5 rounded-lg transition-all cursor-pointer block"
-                          >
-                            Trigger Specialty Scan
-                          </button>
-                        </div>
-                      </div>
-
-                    </div>
-                  </div>
 
                 </div>
               )}
