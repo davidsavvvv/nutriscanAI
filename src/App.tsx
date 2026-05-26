@@ -33,8 +33,16 @@ export default function App() {
   const [profileRestrictions, setProfileRestrictions] = useState<string[]>([]);
   const [profileActivityLevel, setProfileActivityLevel] = useState<string>("");
   const [profileMealsPerDay, setProfileMealsPerDay] = useState<string>("");
+  const [profileSex, setProfileSex] = useState<"Male" | "Female" | "">("");
+  const [profileAge, setProfileAge] = useState<number | "">("");
+  const [profileHeight, setProfileHeight] = useState<number | "">("");
+  const [profileWeight, setProfileWeight] = useState<number | "">("");
   const [profileCalories, setProfileCalories] = useState(2000);
+  const [profileProtein, setProfileProtein] = useState(0);
+  const [profileFat, setProfileFat] = useState(0);
+  const [profileCarbs, setProfileCarbs] = useState(0);
   const [profileEmail, setProfileEmail] = useState<string>("");
+  const [dontKnowTarget, setDontKnowTarget] = useState(false);
   
   // Custom interactive portion modifier state (value between 0.5 and 2.5)
   const [portionSize, setPortionSize] = useState(1.0);
@@ -56,6 +64,7 @@ export default function App() {
   const [showExitIntent, setShowExitIntent] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
   const [cookieConsent, setCookieConsent] = useState(true);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
 
   // Load cache states on initial client hydration
   useEffect(() => {
@@ -71,6 +80,13 @@ export default function App() {
         setProfileRestrictions(parsed.restrictions || []);
         setProfileActivityLevel(parsed.activityLevel || "");
         setProfileMealsPerDay(parsed.mealsPerDay || "");
+        setProfileSex(parsed.sex || "");
+        setProfileAge(parsed.age || "");
+        setProfileHeight(parsed.height || "");
+        setProfileWeight(parsed.weight || "");
+        setProfileProtein(parsed.protein || 0);
+        setProfileFat(parsed.fat || 0);
+        setProfileCarbs(parsed.carbs || 0);
         setProfileCalories(parsed.calories || 2000);
         setProfileEmail(parsed.email || "");
         setViewMode("dashboard"); // resume to dashboard if already set up
@@ -111,16 +127,79 @@ export default function App() {
 
   // Update calories suggest dynamically based on profile goals selected
   useEffect(() => {
-    if (profileGoals.includes("🏋️ Lose weight")) {
-      setProfileCalories(1650);
-    } else if (profileGoals.includes("💪 Build muscle")) {
-      setProfileCalories(2850);
-    } else if (profileGoals.includes("⚡ Boost my energy")) {
-      setProfileCalories(2300);
-    } else {
-      setProfileCalories(2000);
+    if (profileWeight && profileHeight && profileAge && profileSex && profileActivityLevel) {
+        let bmr = (10 * Number(profileWeight)) + (6.25 * Number(profileHeight)) - (5 * Number(profileAge));
+        if (profileSex === "Male") {
+            bmr += 5;
+        } else {
+            bmr -= 161;
+        }
+
+        let multiplier = 1.2;
+        if (profileActivityLevel.includes("Light")) multiplier = 1.375;
+        if (profileActivityLevel.includes("Moderate")) multiplier = 1.55;
+        if (profileActivityLevel.includes("Very")) multiplier = 1.725;
+        if (profileActivityLevel.includes("Extra")) multiplier = 1.9;
+
+        let tdee = bmr * multiplier;
+
+        let targetCalories = Math.round(tdee);
+        if (profileGoals.includes("🏋️ Lose weight")) {
+             targetCalories -= 500;
+        } else if (profileGoals.includes("💪 Build muscle")) {
+             targetCalories += 300;
+        }
+
+        // Only set this automatically once when recalculating default, but if user drags slider it overrides
+        // Let's set it if not 0 or just compute the base and update state. 
+        // We will just do the macro calculation here, assuming profileCalories is the ultimate source of truth.
+        // Wait, if it's the source of truth, how is it initialized?
+        // We can just initialize profileCalories here if it hasn't been modified, but let's just make it sync.
     }
-  }, [profileGoals]);
+  }, [profileGoals, profileSex, profileAge, profileHeight, profileWeight, profileActivityLevel]);
+
+  useEffect(() => {
+     if (!profileWeight) return;
+     const w = Number(profileWeight);
+     let p = 0, f = 0, c = 0;
+     
+     if (profileGoals.includes("🏋️ Lose weight")) {
+         p = Math.round(w * 2.2);
+         f = Math.round(w * 0.8);
+     } else if (profileGoals.includes("💪 Build muscle")) {
+         p = Math.round(w * 2.0);
+         f = Math.round(w * 1.0);
+     } else {
+         p = Math.round(w * 1.8);
+         f = Math.round(w * 1.0);
+     }
+
+     const caloriesFromPF = (p * 4) + (f * 9);
+     const remainingCals = profileCalories - caloriesFromPF;
+     c = Math.max(0, Math.round(remainingCals / 4));
+
+     setProfileProtein(p);
+     setProfileFat(f);
+     setProfileCarbs(c);
+  }, [profileCalories, profileWeight, profileGoals]);
+
+  // Fake loading effect for body analysis
+  useEffect(() => {
+    if (boardingStep === 10) {
+      setAnalysisProgress(0);
+      const interval = setInterval(() => {
+        setAnalysisProgress(p => {
+          if (p >= 100) {
+            clearInterval(interval);
+            setTimeout(() => setBoardingStep(11), 400);
+            return 100;
+          }
+          return p + Math.floor(Math.random() * 5) + 1; // 1-5 progress tick
+        });
+      }, 250); // takes around 5-7 seconds
+      return () => clearInterval(interval);
+    }
+  }, [boardingStep]);
 
   // Sync state modifications
   const syncHistory = (newHistory: ScanResult[]) => {
@@ -135,7 +214,14 @@ export default function App() {
       restrictions: profileRestrictions,
       activityLevel: profileActivityLevel,
       mealsPerDay: profileMealsPerDay,
+      sex: profileSex,
+      age: profileAge,
+      height: profileHeight,
+      weight: profileWeight,
       calories: profileCalories,
+      protein: profileProtein,
+      fat: profileFat,
+      carbs: profileCarbs,
       email: profileEmail
     };
     localStorage.setItem("ns_profile_active", JSON.stringify(profile));
@@ -150,7 +236,14 @@ export default function App() {
     setProfileRestrictions([]);
     setProfileActivityLevel("");
     setProfileMealsPerDay("");
+    setProfileSex("");
+    setProfileAge("");
+    setProfileHeight("");
+    setProfileWeight("");
     setProfileCalories(2000);
+    setProfileProtein(0);
+    setProfileFat(0);
+    setProfileCarbs(0);
     setProfileEmail("");
     setBoardingStep(1);
     setBoardingActive(true);
@@ -386,7 +479,7 @@ export default function App() {
             <div className="w-full bg-[#2a2a2a] h-1.5">
               <div 
                 className="bg-gradient-to-r from-[#00d4aa] to-[#7c3aed] h-full transition-all duration-300"
-                style={{ width: `${(boardingStep / 9) * 100}%` }}
+                style={{ width: `${(boardingStep / 12) * 100}%` }}
               />
             </div>
 
@@ -680,18 +773,98 @@ export default function App() {
                 </div>
               )}
 
-              {/* STEP 7: CALORIES TARGET */}
+              {/* STEP 7: PERSONAL STATS */}
               {boardingStep === 7 && (
-                <div className="space-y-6 animate-fade-in">
+                <div className="space-y-6 animate-fade-in text-center">
                   <div>
-                    <span className="text-[#00d4aa] text-xs font-bold font-mono tracking-widest uppercase">Question 6 of 6</span>
-                    <h3 className="text-2xl font-extrabold text-white mt-1">What is your daily target calorie threshold?</h3>
-                    <p className="text-xs text-slate-400">We auto-suggest metrics based on selected targets or custom physical values.</p>
+                    <span className="text-[#00d4aa] text-xs font-bold font-mono tracking-widest uppercase">Question 6 of 7</span>
+                    <h3 className="text-2xl font-extrabold text-white mt-1">Tell us about yourself</h3>
+                    <p className="text-xs text-slate-400">This allows us to calculate your basal metabolic rate accurately.</p>
                   </div>
 
-                  <div className="bg-[#1c1c1c] border border-[#232323] rounded-2xl p-6 text-center space-y-4">
-                    <div className="text-4xl font-extrabold tracking-tight text-[#00d4aa]">
-                      {profileCalories} <span className="text-xs text-slate-400 font-normal font-mono">kcal / day</span>
+                  <div className="bg-[#1c1c1c] border border-[#232323] rounded-2xl p-6 text-left space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-400">Biological Sex</label>
+                        <div className="flex bg-[#0d0d0d] border border-[#2a2a2a] rounded-xl overflow-hidden">
+                          <button 
+                            onClick={() => setProfileSex("Male")}
+                            className={`flex-1 py-3 text-xs font-bold transition-colors ${profileSex === "Male" ? "bg-[#00d4aa] text-black" : "text-white hover:bg-white/5"}`}
+                          >
+                            Male
+                          </button>
+                          <button 
+                            onClick={() => setProfileSex("Female")}
+                            className={`flex-1 py-3 text-xs font-bold transition-colors border-l border-[#2a2a2a] ${profileSex === "Female" ? "bg-[#00d4aa] text-black" : "text-white hover:bg-white/5"}`}
+                          >
+                            Female
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-400">Age (years)</label>
+                        <input 
+                          type="number"
+                          value={profileAge}
+                          onChange={(e) => setProfileAge(Number(e.target.value) || "")}
+                          placeholder="e.g. 28"
+                          className="w-full bg-[#0d0d0d] border border-[#2a2a2a] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#00d4aa] transition-colors"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-400">Height (cm)</label>
+                        <input 
+                          type="number"
+                          value={profileHeight}
+                          onChange={(e) => setProfileHeight(Number(e.target.value) || "")}
+                          placeholder="e.g. 175"
+                          className="w-full bg-[#0d0d0d] border border-[#2a2a2a] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#00d4aa] transition-colors"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-400">Weight (kg)</label>
+                        <input 
+                          type="number"
+                          value={profileWeight}
+                          onChange={(e) => setProfileWeight(Number(e.target.value) || "")}
+                          placeholder="e.g. 70"
+                          className="w-full bg-[#0d0d0d] border border-[#2a2a2a] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#00d4aa] transition-colors"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4 pt-2">
+                    <button onClick={() => setBoardingStep(6)} className="flex-1 py-3 hover:bg-white/5 border border-[#2a2a2a] text-slate-300 font-bold rounded-xl transition-all">Back</button>
+                    <button 
+                      onClick={() => setBoardingStep(8)} 
+                      disabled={!profileSex || !profileAge || !profileHeight || !profileWeight}
+                      className="flex-1 bg-gradient-to-r from-[#00d4aa] to-[#059669] disabled:opacity-40 hover:brightness-110 text-black font-extrabold py-3 rounded-xl transition-all"
+                    >
+                      Continue
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 8: CALORIES TARGET */}
+              {boardingStep === 8 && (
+                <div className="space-y-6 animate-fade-in">
+                  <div>
+                    <span className="text-[#00d4aa] text-xs font-bold font-mono tracking-widest uppercase">Question 7 of 7</span>
+                    <h3 className="text-2xl font-extrabold text-white mt-1">Your Daily Calorie & Macro Target</h3>
+                    <p className="text-xs text-slate-400">Dynamically formulated based on your biometrics and selected goals.</p>
+                  </div>
+
+                  <div className="bg-[#1c1c1c] border border-[#232323] rounded-2xl p-6 text-center space-y-6">
+                    <div className="space-y-1 relative">
+                      <div className="text-4xl font-extrabold tracking-tight text-[#00d4aa]">
+                        {profileCalories} <span className="text-xs text-slate-400 font-normal font-mono">kcal / day</span>
+                      </div>
+                      <p className="text-xs text-slate-500 font-medium">Calculated Target Energy Intake</p>
                     </div>
 
                     <input 
@@ -701,71 +874,49 @@ export default function App() {
                       step="50"
                       value={profileCalories}
                       onChange={(e) => setProfileCalories(parseInt(e.target.value))}
-                      className="w-full h-1 bg-[#2a2a2a] rounded-lg appearance-none cursor-pointer accent-[#00d4aa]"
+                      disabled={dontKnowTarget}
+                      className="w-full h-1 bg-[#2a2a2a] rounded-lg appearance-none cursor-pointer accent-[#00d4aa] disabled:opacity-30 disabled:cursor-not-allowed"
                     />
-
-                    <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-                      <span>1200 kcal</span>
-                      <span>Maintenance suggest: 2000 kcal</span>
-                      <span>4000 kcal</span>
+                    
+                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[#2a2a2a]">
+                       <div className="bg-[#0d0d0d] p-3 rounded-xl border border-[#2a2a2a]">
+                         <div className="text-[10px] text-slate-500 tracking-wider uppercase font-bold">Protein</div>
+                         <div className="text-white font-mono font-bold">{profileProtein}g</div>
+                       </div>
+                       <div className="bg-[#0d0d0d] p-3 rounded-xl border border-[#2a2a2a]">
+                         <div className="text-[10px] text-slate-500 tracking-wider uppercase font-bold">Fat</div>
+                         <div className="text-white font-mono font-bold">{profileFat}g</div>
+                       </div>
+                       <div className="bg-[#0d0d0d] p-3 rounded-xl border border-[#2a2a2a]">
+                         <div className="text-[10px] text-slate-500 tracking-wider uppercase font-bold">Carbs</div>
+                         <div className="text-white font-mono font-bold">{profileCarbs}g</div>
+                       </div>
                     </div>
                   </div>
 
-                  <div className="p-4 bg-[#7c3aed]/10 border border-[#7c3aed]/25 rounded-xl flex items-center justify-between">
-                    <span className="text-xs text-[#c084fc] font-semibold">Not sure? Calculate standard formulas</span>
-                    <button 
-                      onClick={() => setProfileCalories(2150)}
-                      className="text-[10px] uppercase tracking-wider bg-[#7c3aed] hover:brightness-110 px-3 py-1.5 rounded-lg text-white font-extrabold"
-                    >
-                      Auto Set Standard
-                    </button>
-                  </div>
-
-                  <div className="flex gap-4 pt-2">
-                    <button onClick={() => setBoardingStep(6)} className="flex-1 py-3 hover:bg-white/5 border border-[#2a2a2a] text-slate-300 font-bold rounded-xl transition-all">Back</button>
-                    <button 
-                      onClick={() => setBoardingStep(8)} 
-                      className="flex-1 bg-gradient-to-r from-[#00d4aa] to-[#059669] hover:brightness-110 text-black font-extrabold py-3 rounded-xl transition-all"
-                    >
-                      Continue
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 8: EMAIL REGISTRATION */}
-              {boardingStep === 8 && (
-                <div className="space-y-6 animate-fade-in text-center">
-                  <div>
-                    <span className="text-[#00d4aa] text-xs font-bold font-mono tracking-widest uppercase">Almost Done</span>
-                    <h3 className="text-2xl font-extrabold text-white mt-1">Where should we send your plan?</h3>
-                    <p className="text-xs text-slate-400">Please enter your email address to save your customized profile metrics securely.</p>
-                  </div>
-
-                  <div className="bg-[#1c1c1c] border border-[#232323] rounded-2xl p-6 text-center space-y-4">
-                      <input 
-                        type="email" 
-                        value={profileEmail}
-                        onChange={(e) => setProfileEmail(e.target.value)}
-                        placeholder="you@example.com"
-                        className="w-full bg-[#0d0d0d] border border-[#2a2a2a] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#00d4aa] transition-colors"
-                      />
-                  </div>
+                  <label className="flex items-center space-x-3 cursor-pointer justify-center p-4 bg-[#7c3aed]/10 border border-[#7c3aed]/30 rounded-xl hover:bg-[#7c3aed]/20 transition-colors">
+                    <input 
+                      type="checkbox" 
+                      checked={dontKnowTarget}
+                      onChange={(e) => setDontKnowTarget(e.target.checked)}
+                      className="w-5 h-5 rounded border-[#2a2a2a] bg-[#1c1c1c] text-[#7c3aed] focus:ring-[#7c3aed]"
+                    />
+                    <span className="text-sm font-bold text-slate-300">I don't know, use recommended values</span>
+                  </label>
 
                   <div className="flex gap-4 pt-2">
                     <button onClick={() => setBoardingStep(7)} className="flex-1 py-3 hover:bg-white/5 border border-[#2a2a2a] text-slate-300 font-bold rounded-xl transition-all">Back</button>
                     <button 
                       onClick={() => setBoardingStep(9)} 
-                      disabled={!profileEmail.includes('@')}
-                      className="flex-1 bg-gradient-to-r from-[#00d4aa] to-[#059669] disabled:opacity-40 hover:brightness-110 text-black font-extrabold py-3 rounded-xl transition-all"
+                      className="flex-1 bg-gradient-to-r from-[#00d4aa] to-[#059669] hover:brightness-110 text-black font-extrabold py-3 rounded-xl transition-all"
                     >
-                      See Personalized Plan
+                      See Profile Summary
                     </button>
                   </div>
                 </div>
               )}
 
-              {/* STEP 9: CALIBRATED RESULTS PREVIEW */}
+              {/* STEP 9: CALIBRATED RESULTS PREVIEW (PROFILE SUMMARY) */}
               {boardingStep === 9 && (
                 <div className="space-y-6 animate-fade-in text-center">
                   <div>
@@ -790,24 +941,141 @@ export default function App() {
                       <span className="text-slate-400">Personal Daily Target:</span>
                       <span className="text-white font-bold font-mono">{profileCalories} kcal / day</span>
                     </div>
+                    <div className="flex justify-between items-center text-[10px] text-slate-500 font-mono">
+                      <span>Protein: {profileProtein}g</span>
+                      <span>Fat: {profileFat}g</span>
+                      <span>Carbs: {profileCarbs}g</span>
+                    </div>
                     <div className="flex justify-between items-center text-xs pt-2 border-t border-[#2a2a2a]">
                       <span className="text-slate-400">Artificial Sweetener Alert:</span>
                       <span className="text-rose-400 font-bold uppercase tracking-wider">Activated</span>
                     </div>
                   </div>
 
-                  <button
-                    onClick={handleFinishOnboarding}
-                    className="w-full bg-gradient-to-r from-[#00d4aa] to-[#059669] hover:brightness-110 active:scale-95 text-black font-black py-4 rounded-xl shadow-lg transition-all text-xs uppercase tracking-wider"
-                  >
-                    Start Scanning For Free
-                  </button>
-                  <button 
-                    onClick={() => setBoardingStep(8)}
-                    className="text-xs text-slate-400 hover:text-white font-bold transition-colors pt-2 block w-full"
-                  >
-                    Adjust Parameters
-                  </button>
+                  <div className="flex gap-4 pt-2">
+                    <button onClick={() => setBoardingStep(8)} className="flex-1 py-3 hover:bg-white/5 border border-[#2a2a2a] text-slate-300 font-bold rounded-xl transition-all">Adjust Parameters</button>
+                    <button 
+                      onClick={() => setBoardingStep(10)} 
+                      className="flex-1 bg-gradient-to-r from-[#00d4aa] to-[#059669] hover:brightness-110 text-black font-extrabold py-3 rounded-xl transition-all"
+                    >
+                      Receive my body analysis
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 10: LOADING / ANALYZING SIMULATION */}
+              {boardingStep === 10 && (
+                <div className="space-y-8 py-8 animate-fade-in flex flex-col items-center justify-center text-center">
+                  <div className="w-20 h-20 border-4 border-[#2a2a2a] border-t-[#00d4aa] rounded-full animate-spin"></div>
+                  <div>
+                    <h3 className="text-xl font-extrabold text-white">Analyzing your biometrics...</h3>
+                    <p className="text-xs text-slate-400 mt-2">Computing optimal BMI, macro distribution, and metabolic rate.</p>
+                  </div>
+                  <div className="w-full max-w-xs bg-[#1c1c1c] h-3 rounded-full overflow-hidden border border-[#2a2a2a]">
+                    <div 
+                      className="h-full bg-[#00d4aa] transition-all duration-300"
+                      style={{ width: `${analysisProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 11: HEALTH ANALYSIS */}
+              {boardingStep === 11 && (
+                <div className="space-y-6 animate-fade-in text-center">
+                  <div>
+                    <span className="text-[#00d4aa] text-xs font-bold font-mono tracking-widest uppercase">Health Analysis</span>
+                    <h3 className="text-2xl font-extrabold text-white mt-1">Your Body & Objective</h3>
+                    <p className="text-xs text-slate-400">Based on the data you inputted, here is your medical outlook.</p>
+                  </div>
+
+                  <div className="bg-[#1c1c1c] border border-[#2a2a2a] p-6 rounded-2xl text-left space-y-4">
+                    {(() => {
+                        const hM = Number(profileHeight) / 100;
+                        const w = Number(profileWeight);
+                        const bmi = hM > 0 && w > 0 ? (w / (hM * hM)).toFixed(1) : "N/A";
+                        let bmiStatus = "";
+                        let statusColor = "text-white";
+                        if (hM > 0 && w > 0) {
+                            const b = Number(bmi);
+                            if (b < 18.5) { bmiStatus = "Underweight"; statusColor = "text-yellow-400"; }
+                            else if (b < 25) { bmiStatus = "Normal Weight"; statusColor = "text-[#00d4aa]"; }
+                            else if (b < 30) { bmiStatus = "Overweight"; statusColor = "text-orange-400"; }
+                            else { bmiStatus = "Obesity"; statusColor = "text-red-500"; }
+                        }
+
+                        let targetAdvice = "";
+                        if (profileGoals.includes("🏋️ Lose weight")) {
+                            if (Number(bmi) >= 25) {
+                                targetAdvice = `Your BMI indicates you are in the ${bmiStatus} category, meaning your weight is higher than optimal for your height. To safely lose weight and preserve muscle, you need a daily deficit. Based on your stats, stick to ${profileCalories} kcal and prioritize your ${profileProtein}g of daily protein to stay satiated and preserve tissue.`;
+                            } else {
+                                targetAdvice = `You are already in the ${bmiStatus} category. Proceed carefully with weight loss to avoid metabolic damage. Keep your protein at ${profileProtein}g to avoid muscle atrophy while consuming ${profileCalories} kcal.`;
+                            }
+                        } else if (profileGoals.includes("💪 Build muscle")) {
+                            targetAdvice = `Your BMI is ${bmiStatus}. To build muscle efficiently, you need a caloric surplus and sufficient protein. We have set your target to ${profileCalories} kcal with ${profileProtein}g of protein daily. Ensure you focus on progressive overload in your resistance training.`;
+                        } else {
+                            targetAdvice = `Your BMI is ${bmiStatus}. To maintain your current weight and improve holistic wellness, aim for ${profileCalories} kcal and ${profileProtein}g of protein daily. Focus on whole foods and hitting your macros.`;
+                        }
+
+                        return (
+                          <>
+                            <div className="flex justify-between items-center text-sm border-b border-[#2a2a2a] pb-3">
+                              <span className="text-slate-400">Body Mass Index (BMI):</span>
+                              <div className="text-right">
+                                <span className="font-mono text-white font-black text-lg">{bmi}</span>
+                                <span className={`block text-xs font-bold ${statusColor} uppercase tracking-wider`}>{bmiStatus}</span>
+                              </div>
+                            </div>
+                            <p className="text-sm text-slate-300 leading-relaxed pt-1 font-medium">
+                              {targetAdvice}
+                            </p>
+                          </>
+                        );
+                    })()}
+                  </div>
+
+                  <div className="flex gap-4 pt-2">
+                    <button onClick={() => setBoardingStep(9)} className="flex-1 py-3 hover:bg-white/5 border border-[#2a2a2a] text-slate-300 font-bold rounded-xl transition-all">Back</button>
+                    <button 
+                      onClick={() => setBoardingStep(12)} 
+                      className="flex-1 bg-gradient-to-r from-[#00d4aa] to-[#059669] hover:brightness-110 text-black font-extrabold py-3 rounded-xl transition-all"
+                    >
+                      Continue
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 12: EMAIL REGISTRATION */}
+              {boardingStep === 12 && (
+                <div className="space-y-6 animate-fade-in text-center">
+                  <div>
+                    <span className="text-[#00d4aa] text-xs font-bold font-mono tracking-widest uppercase">Almost Done</span>
+                    <h3 className="text-2xl font-extrabold text-white mt-1">Where should we send your plan?</h3>
+                    <p className="text-xs text-slate-400">Please enter your email address to save your customized profile metrics securely.</p>
+                  </div>
+
+                  <div className="bg-[#1c1c1c] border border-[#232323] rounded-2xl p-6 text-center space-y-4">
+                      <input 
+                        type="email" 
+                        value={profileEmail}
+                        onChange={(e) => setProfileEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        className="w-full bg-[#0d0d0d] border border-[#2a2a2a] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#00d4aa] transition-colors"
+                      />
+                  </div>
+
+                  <div className="flex gap-4 pt-2">
+                    <button onClick={() => setBoardingStep(11)} className="flex-1 py-3 hover:bg-white/5 border border-[#2a2a2a] text-slate-300 font-bold rounded-xl transition-all">Back</button>
+                    <button 
+                      onClick={handleFinishOnboarding}
+                      disabled={!profileEmail.includes('@')}
+                      className="flex-1 bg-gradient-to-r from-[#00d4aa] to-[#059669] disabled:opacity-40 hover:brightness-110 active:scale-95 text-black font-extrabold py-3 rounded-xl transition-all text-xs uppercase tracking-wider"
+                    >
+                      Start Scanning For Free
+                    </button>
+                  </div>
                 </div>
               )}
 
