@@ -21,7 +21,7 @@ export default function App() {
   const [viewMode, setViewMode] = useState<"landing" | "dashboard">("landing");
   
   // Sidebar tab index for dashboard
-  const [activeTab, setActiveTab] = useState<"home" | "scanner" | "history" | "upgrade">("home");
+  const [activeTab, setActiveTab] = useState<"home" | "history" | "upgrade">("home");
   
   // Onboarding Active Flow state
   const [boardingActive, setBoardingActive] = useState(false);
@@ -280,7 +280,7 @@ export default function App() {
   // Perform a barcode, image or custom product scan simulation
   const handleScanSimulation = (brand: string, name: string) => {
     setIsLoading(true);
-    setActiveTab("scanner");
+    setActiveTab("home");
     
     // Smooth scroll to scanner zone container
     setTimeout(() => {
@@ -1512,8 +1512,7 @@ export default function App() {
               {/* Sidebar Tabs Links */}
               <nav className="flex flex-col gap-1.5">
                 {[
-                  { id: "home", label: "📊 Coach Dashboard", icon: <Layers className="w-4 h-4" /> },
-                  { id: "scanner", label: "📷 Live AI Scanner", icon: <Camera className="w-4 h-4" /> },
+                  { id: "home", label: "📊 Dashboard & Scanner", icon: <Layers className="w-4 h-4" /> },
                   { id: "history", label: "🗓️ History Log & Export", icon: <Calendar className="w-4 h-4" /> },
                   { id: "upgrade", label: "💎 Premium Upgrades", icon: <CreditCard className="w-4 h-4" /> }
                 ].map((item) => {
@@ -1645,14 +1644,7 @@ export default function App() {
                   </div>
 
 
-
-                </div>
-              )}
-
-              {/* TAB 2: LIVE AI SCANNER ENGINE (OCR and actual scanning visual layout) */}
-              {activeTab === "scanner" && (
-                <div className="space-y-8 animate-fade-in">
-                  
+                  {/* LIVE AI SCANNER ENGINE (OCR and actual scanning visual layout) */}
                   <div className="bg-[#141414] border border-[#2a2a2a] p-6 sm:p-8 rounded-[32px] space-y-4 shadow-sm relative">
                     <div className="space-y-1">
                       <h3 className="text-xl font-bold font-display text-white">📷 Visual Diagnostic Sandbox</h3>
