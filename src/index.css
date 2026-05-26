@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", var(--font-sans);
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --color-brand: #00d4aa;
+  --color-brand-purple: #7c3aed;
+  --color-dark-bg: #0d0d0d;
+  --color-dark-card: #1a1a1a;
+  --color-dark-border: #2a2a2a;
+}
+
+/* Custom background animations & utilities */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.3; }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(13, 13, 13, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(42, 42, 42, 0.8);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 212, 170, 0.8);
+}
+
+/* Scanning bar effect */
+@keyframes scanningLine {
+  0% { top: 0%; opacity: 0.8; }
+  50% { top: 100%; opacity: 1; }
+  100% { top: 0%; opacity: 0.8; }
+}
+
+.animate-scanning-line {
+  animation: scanningLine 2.5s linear infinite;
+}
+
+
