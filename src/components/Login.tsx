@@ -9,6 +9,7 @@ interface LoginProps {
 export function Login({ onSuccess }: LoginProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -22,6 +23,9 @@ export function Login({ onSuccess }: LoginProps) {
 
     try {
       if (isSignUp) {
+        if (password !== confirmPassword) {
+          throw new Error("Les mots de passe ne correspondent pas.");
+        }
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -117,6 +121,27 @@ export function Login({ onSuccess }: LoginProps) {
           </div>
         </div>
 
+        {isSignUp && (
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1">
+              Confirmer le mot de passe
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Lock className="h-5 w-5 text-slate-500" />
+              </div>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-[#0a0a0a] border border-[#2a2a2a] rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-[#00d4aa] focus:ring-1 focus:ring-[#00d4aa] transition-colors"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+          </div>
+        )}
+
         {error && (
           <div className="p-3 bg-red-950/50 border border-red-900/50 rounded-xl text-xs text-red-200">
             {error}
@@ -137,7 +162,7 @@ export function Login({ onSuccess }: LoginProps) {
           {loading ? (
             <Loader2 className="w-5 h-5 animate-spin" />
           ) : isSignUp ? (
-            "S'inscrire"
+            "Créer mon compte"
           ) : (
             "Se connecter"
           )}

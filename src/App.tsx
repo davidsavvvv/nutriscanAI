@@ -4,6 +4,7 @@ import { ScanResult, SampleProduct } from "./types";
 import ProductCard from "./components/ProductCard";
 import ScannerTab from "./components/ScannerTab";
 import { Login } from "./components/Login";
+import { supabase } from "./lib/supabase";
 import { 
   Sparkles, ShieldCheck, Zap, Layers, Trophy, Flame, Camera, Upload, 
   Trash2, CheckCircle, Calendar, AlertCircle, RefreshCw, ChevronRight, 
@@ -94,6 +95,21 @@ export default function App() {
 
   // Load cache states on initial client hydration
   useEffect(() => {
+    // Check Supabase Auth session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setViewMode("dashboard");
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        setViewMode("dashboard");
+      }
+    });
+
     try {
       const storedHistory = localStorage.getItem("ns_history_v2");
       if (storedHistory) {
@@ -490,7 +506,10 @@ export default function App() {
               </>
             ) : (
               <button 
-                onClick={() => setViewMode("landing")}
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  setViewMode("landing");
+                }}
                 className="text-xs border border-[#2a2a2a] hover:bg-white/5 text-slate-300 font-bold px-4 py-2 rounded-full transition-all"
               >
                 Sign Out / Exit Dashboard
