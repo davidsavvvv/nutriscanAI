@@ -4,6 +4,8 @@ import { ScanResult, SampleProduct } from "./types";
 import ProductCard from "./components/ProductCard";
 import ScannerTab from "./components/ScannerTab";
 import { Login } from "./components/Login";
+import { BeforeAfterDemo } from "./components/BeforeAfterDemo";
+import { HeroSection } from "./components/HeroSection";
 import { supabase } from "./lib/supabase";
 import { 
   Sparkles, ShieldCheck, Zap, Layers, Trophy, Flame, Camera, Upload, 
@@ -1135,127 +1137,9 @@ export default function App() {
       {viewMode === "landing" && (
         <div className="w-full">
           
-          {/* HERO SECTION */}
-          <section className="relative pt-20 pb-24 md:pt-28 md:pb-36 text-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="relative z-10 space-y-6 max-w-4xl mx-auto">
-              
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#161616] border border-[#2a2a2a] text-xs text-[#00d4aa]">
-                <Sparkles className="w-4 h-4 text-[#00d4aa] animate-spin-slow" />
-                <span className="font-mono uppercase tracking-widest font-extrabold text-[10px]">
-                  NutriScan AI Core 3.5 Released
-                </span>
-              </div>
+          <HeroSection onCtaClick={resetOnboarding} />
 
-              <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight font-display text-white">
-                Scan Any Food. <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00d4aa] to-teal-400">
-                  Know Everything.
-                </span> Instantly.
-              </h1>
-
-              <p className="text-slate-400 text-sm md:text-lg max-w-2xl mx-auto leading-relaxed">
-                Premium AI-powered biological food identification and ingredient scanning utilized by over 200,000+ athletes, diabetics, and health-conscious people worldwide.
-              </p>
-
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-                <button
-                  onClick={resetOnboarding}
-                  className="w-full sm:w-auto px-8 py-4 rounded-full bg-gradient-to-r from-[#00d4aa] to-[#059669] hover:brightness-110 active:scale-95 text-black font-extrabold text-xs uppercase tracking-wider shadow-[0_4px_30px_rgba(0,212,170,0.3)] cursor-pointer transition-all"
-                >
-                  Scan Your First Meal Free
-                </button>
-              </div>
-
-              <div className="flex items-center justify-center gap-6 pt-4 text-[11px] text-slate-500 font-mono">
-                <span className="flex items-center gap-1.5"><Check className="text-[#00d4aa] w-3.5 h-3.5" /> No Credit Card Required</span>
-                <span>•</span>
-                <span className="flex items-center gap-1.5"><Check className="text-[#00d4aa] w-3.5 h-3.5" /> HIPAA and GDPR Compliant</span>
-              </div>
-
-            </div>
-
-            {/* Premium iPhone style product preview floating card mockup */}
-            <div className="mt-16 max-w-3xl mx-auto bg-[#141414] border border-[#2a2a2a] rounded-[36px] p-4 shadow-[0_15px_60px_rgba(0,0,0,0.8)] relative group overflow-hidden">
-              <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#00d4aa] via-[#7c3aed] to-[#00d4aa]" />
-              <div className="bg-[#090909] rounded-[28px] p-6 border border-[#232323] text-left">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#232323] pb-4 mb-6">
-                  <div className="flex items-center gap-3">
-                    <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-ping" />
-                    <span className="text-[10px] font-mono text-[#00d4aa] uppercase tracking-wider font-extrabold">Active AI Diagnostic Stage</span>
-                  </div>
-                  <div className="text-slate-400 text-xs font-semibold">Scanning: <span className="text-white">Avocado Toast with Egg</span></div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-                  <div className="md:col-span-4 bg-[#141414] border border-[#2a2a2a] p-6 rounded-2xl flex flex-col items-center justify-center text-center">
-                    <span className="text-[40px]">🥑</span>
-                    <span className="text-[10px] uppercase font-mono tracking-widest text-[#00d4aa] font-bold mt-2">Nutri-Score A</span>
-                    <h4 className="text-lg font-extrabold mt-1">Avocado Duo</h4>
-                  </div>
-                  <div className="md:col-span-8 space-y-3">
-                    <div className="bg-[#141414] border border-[#2a2a2a] p-4 rounded-xl flex items-center justify-between">
-                      <span className="text-xs text-slate-400 font-medium">Verified Calories:</span>
-                      <span className="text-white font-mono font-bold text-sm">380 kcal</span>
-                    </div>
-                    <div className="bg-[#141414] border border-[#2a2a2a] p-4 rounded-xl flex items-center justify-between">
-                      <span className="text-xs text-slate-400 font-medium">Protein:</span>
-                      <span className="text-emerald-400 font-mono font-bold text-sm">14 g</span>
-                    </div>
-                    <div className="bg-[#1c1c1c] border border-rose-950 p-4 rounded-xl flex items-center justify-between">
-                      <span className="text-xs text-rose-300 font-bold">⚠️ Allergen Monitor:</span>
-                      <span className="text-rose-400 font-mono text-xs font-black">Eggs & Gluten Detected</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* TRUSTED BY STRIP */}
-          <section className="bg-black/40 border-y border-[#202020] py-8 text-center">
-            <p className="text-[11px] font-mono uppercase tracking-widest text-slate-500 font-extrabold mb-4">
-              Integrates Natively with Health Monitors & Gym Formulas
-            </p>
-            <div className="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-center gap-10 md:gap-16 opacity-30 grayscale filter invert hover:opacity-50 transition-all">
-              <span className="font-bold text-lg tracking-widest">APPLE HEALTH</span>
-              <span className="font-sans font-bold text-lg tracking-wider">FITBIT REEFED</span>
-              <span className="font-mono text-lg font-black italic">WHOOP TRACKERS</span>
-              <span className="font-sans font-extrabold text-lg">STRAVA ALGORITHMS</span>
-              <span className="font-serif text-lg font-bold">MYFITNESSPAL PRO</span>
-            </div>
-          </section>
-
-          {/* HOW IT WORKS SECTION */}
-          <section id="how-it-works" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-              <span className="text-xs text-[#00d4aa] font-bold font-mono tracking-widest ml-1 uppercase bg-[#00d4aa]/10 border border-[#00d4aa]/25 px-3 py-1.5 rounded-full">
-                Zero Hurdles Platform
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight font-display">How NutriScan Solves Diet Chaos</h2>
-              <p className="text-slate-400 text-sm">
-                Three automated steps to complete macronutrient clarity in under five seconds.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                { step: "01", icon: <Camera className="w-8 h-8 text-[#00d4aa]" />, t: "Take a Photo of Food", desc: "Snap a quick snapshot of secondary ingredients list, barcodes, complex gym compounds, or complete restaurant menu items with any standard smartphone or laptop device browser." },
-                { step: "02", icon: <Sparkles className="w-8 h-8 text-[#7c3aed]" />, t: "AI Processes Compiling", desc: "Our advanced neural computer vision model automatically identifies cellular geometry, brand names, and nutritional statements in our massive 10M+ product inventory." },
-                { step: "03", icon: <Layers className="w-8 h-8 text-[#00d4aa]" />, t: "Instant Bio-metric Reports", desc: "Get full granular macro and micronutrient metrics, artificial sweetener hazard warnings, health vs fitness scores alongside personalized cleaner health swaps." }
-              ].map((item, idx) => (
-                <div key={idx} className="bg-[#141414] border border-[#252525] hover:border-slate-700 transition-all p-8 rounded-3xl relative overflow-hidden group">
-                  <span className="absolute top-4 right-6 font-mono font-black text-2xl text-[#2a2a2a] group-hover:text-[#00d4aa]/20 transition-colors">
-                    {item.step}
-                  </span>
-                  <div className="mb-6 p-4 bg-[#1a1a1a] rounded-2xl w-fit">
-                    {item.icon}
-                  </div>
-                  <h3 className="text-lg font-extrabold text-white mb-2">{item.t}</h3>
-                  <p className="text-slate-400 text-xs leading-relaxed">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </section>
+          <BeforeAfterDemo />
 
           {/* FEATURES GRID SECTION */}
           <section id="features" className="py-24 bg-gradient-to-b from-black to-[#090909] border-t border-[#202020]">
