@@ -70,7 +70,7 @@ export function Login({ onSuccess }: LoginProps) {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-8 rounded-3xl bg-[#141414] border border-[#232323] shadow-lg">
+    <div className="w-full max-w-md mx-auto p-6 sm:p-8 rounded-3xl bg-[#141414] border border-[#232323] shadow-lg">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold font-display text-white mb-2">
           {isSignUp ? "Créer un compte" : "Bon retour"}

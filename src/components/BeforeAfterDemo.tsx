@@ -47,11 +47,12 @@ export function BeforeAfterDemo() {
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ delay: 0.3 }}
-              className="hidden md:flex flex-col items-center justify-center relative"
+              className="flex flex-col md:flex-row items-center justify-center relative my-4 md:my-0 md:h-[200px]"
             >
-               <div className="absolute inset-0 bg-[#00d4aa] blur-[40px] opacity-20 rounded-full w-20 h-20"></div>
-               <ArrowRight className="w-8 h-8 text-[#00d4aa] animate-pulse relative z-10" />
-               <div className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#00d4aa] to-transparent h-40 animate-pulse delay-75"></div>
+               <div className="absolute inset-0 bg-[#00FF88] blur-[40px] opacity-20 rounded-full w-20 h-20 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+               <ArrowRight className="hidden md:block w-8 h-8 text-[#00FF88] animate-pulse relative z-10" />
+               <svg className="md:hidden w-8 h-8 text-[#00FF88] animate-pulse relative z-10 rotate-90" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+               <div className="hidden md:block absolute top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#00FF88] to-transparent h-40 animate-pulse delay-75"></div>
             </motion.div>
 
             {/* After */}
@@ -62,7 +63,7 @@ export function BeforeAfterDemo() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="w-full md:w-1/3 bg-[#0d0d0d] p-6 rounded-[28px] border border-rose-900/30 relative transition-transform transform md:group-hover:translate-x-2 duration-500 shadow-[0_0_30px_rgba(225,29,72,0.05)]"
             >
-              <span className="absolute top-4 left-6 text-[10px] font-mono font-bold text-[#00d4aa] uppercase tracking-widest">Apres (NutriScan)</span>
+              <span className="absolute top-4 left-6 text-[10px] font-mono font-bold text-[#00FF88] uppercase tracking-widest">Apres (NutriScan)</span>
               
               <div className="mt-6 space-y-4">
                 <div className="flex items-center justify-between bg-black/40 p-3 rounded-xl border border-rose-950">
@@ -121,11 +122,12 @@ export function BeforeAfterDemo() {
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ delay: 0.3 }}
-              className="hidden md:flex flex-col items-center justify-center relative"
+              className="flex flex-col md:flex-row items-center justify-center relative my-4 md:my-0 md:h-[200px]"
             >
-               <div className="absolute inset-0 bg-[#00d4aa] blur-[40px] opacity-20 rounded-full w-20 h-20"></div>
-               <ArrowRight className="w-8 h-8 text-[#00d4aa] animate-pulse relative z-10" />
-               <div className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#00d4aa] to-transparent h-40 animate-pulse delay-75"></div>
+               <div className="absolute inset-0 bg-[#00FF88] blur-[40px] opacity-20 rounded-full w-20 h-20 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+               <ArrowRight className="hidden md:block w-8 h-8 text-[#00FF88] animate-pulse relative z-10" />
+               <svg className="md:hidden w-8 h-8 text-[#00FF88] animate-pulse relative z-10 rotate-90" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+               <div className="hidden md:block absolute top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#00FF88] to-transparent h-40 animate-pulse delay-75"></div>
             </motion.div>
 
             {/* After */}
@@ -136,7 +138,7 @@ export function BeforeAfterDemo() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="w-full md:w-1/3 bg-[#0d0d0d] p-6 rounded-[28px] border border-orange-900/30 relative transition-transform transform md:group-hover:translate-x-2 duration-500 shadow-[0_0_30px_rgba(249,115,22,0.05)]"
             >
-              <span className="absolute top-4 left-6 text-[10px] font-mono font-bold text-[#00d4aa] uppercase tracking-widest">Apres (NutriScan)</span>
+              <span className="absolute top-4 left-6 text-[10px] font-mono font-bold text-[#00FF88] uppercase tracking-widest">Apres (NutriScan)</span>
               
               <div className="mt-6 space-y-4">
                 <div className="flex items-center justify-between bg-black/40 p-3 rounded-xl border border-orange-950">
@@ -195,11 +197,12 @@ export function BeforeAfterDemo() {
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ delay: 0.3 }}
-              className="hidden md:flex flex-col items-center justify-center relative"
+              className="flex flex-col md:flex-row items-center justify-center relative my-4 md:my-0 md:h-[200px]"
             >
-               <div className="absolute inset-0 bg-[#00d4aa] blur-[40px] opacity-20 rounded-full w-20 h-20"></div>
-               <ArrowRight className="w-8 h-8 text-[#00d4aa] animate-pulse relative z-10" />
-               <div className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#00d4aa] to-transparent h-40 animate-pulse delay-100"></div>
+               <div className="absolute inset-0 bg-[#00FF88] blur-[40px] opacity-20 rounded-full w-20 h-20 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+               <ArrowRight className="hidden md:block w-8 h-8 text-[#00FF88] animate-pulse relative z-10" />
+               <svg className="md:hidden w-8 h-8 text-[#00FF88] animate-pulse relative z-10 rotate-90" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+               <div className="hidden md:block absolute top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#00FF88] to-transparent h-40 animate-pulse delay-100"></div>
             </motion.div>
 
             {/* After */}

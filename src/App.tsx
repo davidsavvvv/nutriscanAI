@@ -6,6 +6,11 @@ import ScannerTab from "./components/ScannerTab";
 import { Login } from "./components/Login";
 import { BeforeAfterDemo } from "./components/BeforeAfterDemo";
 import { HeroSection } from "./components/HeroSection";
+import { FeaturesSection } from "./components/FeaturesSection";
+import { TestimonialsSection } from "./components/TestimonialsSection";
+import { PricingSection } from "./components/PricingSection";
+import { FAQSection } from "./components/FAQSection";
+import ScanResultPanel from "./components/ScanResultPanel";
 import { supabase } from "./lib/supabase";
 import { 
   Sparkles, ShieldCheck, Zap, Layers, Trophy, Flame, Camera, Upload, 
@@ -69,6 +74,7 @@ export default function App() {
   const [hasScrolled, setHasScrolled] = useState(false);
   const [cookieConsent, setCookieConsent] = useState(true);
   const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const normalizeFrenchResultToLegacy = (res: any): ScanResult => {
     if (res.calories !== undefined) return res;
@@ -439,7 +445,10 @@ export default function App() {
           
           {/* Logo Brand */}
           <div 
-            onClick={() => setViewMode("landing")} 
+            onClick={() => {
+              if (viewMode !== "dashboard") setViewMode("landing");
+              else setActiveTab("home");
+            }} 
             className="flex items-center gap-3 cursor-pointer group"
           >
             <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-[#00d4aa] to-[#10b981] flex items-center justify-center shadow-[0_0_20px_rgba(0,212,170,0.3)] transition-transform group-hover:scale-105">
@@ -479,14 +488,14 @@ export default function App() {
           )}
 
           {/* Navbar actions */}
-          <div className="flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-4">
             {viewMode === "landing" ? (
               <>
                 <button 
                   onClick={() => {
                     setViewMode("login");
                   }} 
-                  className="text-sm font-bold text-white hover:text-[#00d4aa] transition-colors duration-200"
+                  className="text-sm font-bold text-white hover:text-[#00FF88] transition-colors duration-200"
                 >
                   Connexion
                 </button>
@@ -495,15 +504,15 @@ export default function App() {
                     setViewMode("dashboard");
                     setActiveTab("home");
                   }} 
-                  className="text-sm font-bold text-white hover:text-[#00d4aa] transition-colors duration-200"
+                  className="text-sm font-bold text-white hover:text-[#00FF88] transition-colors duration-200"
                 >
                   Direct Sandbox
                 </button>
                 <button 
                   onClick={resetOnboarding}
-                  className="bg-gradient-to-r from-[#00d4aa] to-[#059669] hover:brightness-110 active:scale-95 text-black font-extrabold text-sm px-6 py-2.5 rounded-full shadow-[0_4px_20px_rgba(0,212,170,0.25)] transition-all cursor-pointer"
+                  className="bg-[#00FF88] hover:bg-[#00e67a] active:scale-95 text-black font-extrabold text-sm px-6 py-2.5 rounded-full shadow-[0_4px_20px_rgba(0,255,136,0.25)] transition-all cursor-pointer"
                 >
-                  Start Scanning Free →
+                  Scanner gratuitement →
                 </button>
               </>
             ) : (
@@ -518,13 +527,66 @@ export default function App() {
               </button>
             )}
           </div>
+
+          {/* Hamburger Menu Icon */}
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="md:hidden flex flex-col justify-center items-center h-10 w-10 gap-1.5 focus:outline-none"
+          >
+            <div className="w-6 h-0.5 bg-white rounded"></div>
+            <div className="w-6 h-0.5 bg-white rounded"></div>
+            <div className="w-6 h-0.5 bg-white rounded"></div>
+          </button>
         </div>
       </nav>
 
+      {/* MOBILE FULL-SCREEN NAV OVERLAY */}
+      <div 
+        className={`fixed inset-0 bg-[#0d0d0d] z-50 flex flex-col pt-8 pb-12 px-6 transition-transform duration-300 ease-in-out sm:hidden ${
+          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        <div className="flex justify-end mb-8">
+          <button 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="h-10 w-10 bg-[#1a1a1a] rounded-full flex items-center justify-center text-slate-400 hover:text-white"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+        
+        <div className="flex flex-col gap-6 flex-1 text-2xl font-bold text-white">
+          <a href="#features" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[#00FF88] transition-colors">Fonctionnalités</a>
+          <a href="#testimonials" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[#00FF88] transition-colors">Avis</a>
+          <a href="#pricing" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[#00FF88] transition-colors">Tarifs</a>
+          <a href="#faq" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[#00FF88] transition-colors">FAQ</a>
+          <button 
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              setViewMode("login");
+            }} 
+            className="text-left hover:text-[#00FF88] transition-colors"
+          >
+            Connexion
+          </button>
+        </div>
+
+        <button 
+          onClick={() => {
+            setIsMobileMenuOpen(false);
+            resetOnboarding();
+          }}
+          className="w-full bg-[#00FF88] text-black font-extrabold text-lg py-5 rounded-full active:scale-95 transition-transform"
+        >
+          📸 Scanner gratuitement
+        </button>
+      </div>
+
       {/* FULL-SCREEN ONBOARDING OVERLAY FLUID STEPSEQUENCE */}
       {boardingActive && (
-        <div className="fixed inset-0 bg-[#0d0d0d] z-50 flex flex-col items-center justify-center p-4 overflow-y-auto">
-          <div className="max-w-xl w-full bg-[#161616] rounded-[36px] border border-[#2a2a2a] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex flex-col relative min-h-[520px]">
+        <div className="fixed inset-0 bg-[#0d0d0d] z-50 overflow-y-auto">
+          <div className="flex flex-col min-h-full p-4 py-8">
+            <div className="max-w-xl w-full my-auto mx-auto bg-[#161616] rounded-[36px] border border-[#2a2a2a] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex flex-col relative min-h-[520px]">
             
             {/* Top Close */}
             <button 
@@ -1131,6 +1193,7 @@ export default function App() {
             </div>
           </div>
         </div>
+        </div>
       )}
 
       {/* VIEW 1: SAAS OFF-LOGGED LANDING PAGE */}
@@ -1141,249 +1204,42 @@ export default function App() {
 
           <BeforeAfterDemo />
 
-          {/* FEATURES GRID SECTION */}
-          <section id="features" className="py-24 bg-gradient-to-b from-black to-[#090909] border-t border-[#202020]">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              
-              <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-                <span className="text-xs text-[#7c3aed] font-bold font-mono uppercase tracking-widest bg-[#7c3aed]/10 border border-[#7c3aed]/20 px-3 py-1.5 rounded-full">
-                  Fully Loaded SaaS Suite
-                </span>
-                <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight font-display">Engineered For Ultra High Performance</h2>
-                <p className="text-slate-400 text-xs leading-relaxed">
-                  Every metric, sweet warning, portion controller, and raw alternate swap compiled carefully by AI.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[
-                  { t: "Instant Vision Recognition", desc: "Snap a whole plate of food. AI identifies the exact ingredients, estimated weights, and calculates totals instantaneously with high confidence metrics." },
-                  { t: "Advanced Barcode Scans", desc: "Access barcode mappings connected to 10M+ global supermarket foods, sports formula labels, and specialized nutrition feeds." },
-                  { t: "Deep Chemical Additives Scanner", desc: "Instantly cross-references artificial sweeteners, synthetics, inflammatory thickeners, and potential gut microbiotica irritants." },
-                  { t: "Calibrated Goal Tracking", desc: "Calorie progress targets automatically recalculating based on your initial weight-loss, fitness weight gain, or clinical targets." },
-                  { t: "Interactive Water Hydration Log", desc: "Quick floating trackers that register fluid volumes and help keep cells unburdened during active metabolisms." },
-                  { t: "Advanced Restaurant Menu Scanners", desc: "Scan complex menus at restaurants and automatically compile the cleanest fitness options based on allergens." }
-                ].map((item, idx) => (
-                  <div key={idx} className="bg-[#141414] border border-[#2a2a2a] p-6 rounded-[28px] hover:scale-[1.01] transition-transform">
-                    <div className="h-6 w-6 rounded-full bg-[#00d4aa]/10 flex items-center justify-center text-[#00d4aa] text-xs font-bold mb-4 font-mono">
-                      {idx + 1}
-                    </div>
-                    <h4 className="text-base font-extrabold text-white mb-2">{item.t}</h4>
-                    <p className="text-slate-400 text-xs leading-relaxed">{item.desc}</p>
-                  </div>
-                ))}
-              </div>
-
-            </div>
-          </section>
+          <FeaturesSection />
 
           {/* USER TESTIMONIALS */}
-          <section id="testimonials" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-[#222]">
-            <div className="text-center max-w-2xl mx-auto mb-16">
-              <span className="text-xs text-[#00d4aa] font-bold font-mono uppercase tracking-widest pl-1">200,000+ Success Stories</span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight font-display mt-2">Validated Daily by Real People</h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                { name: "Marcus Thorne", r: "Athletic Weightlifter", rating: 5, t: "Excellent For Raw Protein Targets", desc: "NutriScan automatically alerts me if protein isolates are paired with hidden maltodextrin. I shredded 3% body fat while saving 45 minutes of tracking hassle daily." },
-                { name: "Dr. Sarah Lin", r: "Clinical Endocrinologist", rating: 5, t: "Incredible Artificial Sweetener Audits", desc: "I suggest NutriScan to patients with insulin resistance. It reads behind confusing sport formulas to call out synthetic sugars transparently in red alert boxes." },
-                { name: "Elena Rostova", r: "Busy Tech Lead & Mom", rating: 5, t: "Duolingo Ease for Nutrition", desc: "The onboarding sequence is so streamlined and helpful. I know exactly what I feed my kids now, without tedious calorie logs. Highly recommended!" },
-                { name: "Johnathan Blake", r: "Gluten-Intolerant Athlete", rating: 5, t: "Saves Me From Inflammatory Attacks", desc: "NutriScan instantly flagged trace barley extract in a fitness bar I was about to buy in the gym lobby. It is literally a life saver tool." },
-                { name: "Nadia Belmonte", r: "Keto & Vegan Diet Follower", rating: 5, t: "Extremely Clean Plant Alternatives", desc: "I scan sports drinks and it suggests fantastic matcha recipes. The health vs fitness score is remarkably accurate and customized." },
-                { name: "Timothy Cox", r: "Recovering Diabetic", rating: 5, t: "My Blood Sugar is Finally Stable", desc: "I scan the barcode of everything. The app alerts me to high sugar impact indexes. My doctor was absolutely amazed at the changes." }
-              ].map((item, idx) => (
-                <div key={idx} className="bg-[#141414] border border-[#2a2a2a] p-6 rounded-3xl space-y-4">
-                  <div className="flex items-center gap-1">
-                    {[...Array(item.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 text-[#00d4aa] fill-[#00d4aa]" />
-                    ))}
-                  </div>
-                  <h4 className="text-sm font-extrabold text-white">"{item.t}"</h4>
-                  <p className="text-slate-400 text-xs leading-relaxed">"{item.desc}"</p>
-                  <div className="flex items-center gap-2 pt-2 border-t border-[#222]">
-                    <div className="h-8 w-8 rounded-full bg-slate-800 flex items-center justify-center font-bold text-[10px] text-white uppercase">
-                      {item.name[0]}
-                    </div>
-                    <div>
-                      <span className="text-xs font-bold text-white block">{item.name}</span>
-                      <span className="text-[10px] text-slate-500 font-mono">{item.r}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
+          <TestimonialsSection />
 
           {/* PRICING PLANS SECTION */}
-          <section id="pricing" className="py-24 bg-gradient-to-b from-black via-[#0d0d0d] to-black border-t border-[#222]">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-12">
-              
-              <div className="space-y-4">
-                <span className="text-xs text-[#00d4aa] font-bold font-mono uppercase tracking-widest pl-1">Simple No-Squeeze Pricing</span>
-                <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight font-display">Unlock Full Diagnostic Power</h2>
-                
-                {/* Billing Toggle */}
-                <div className="flex items-center justify-center gap-4 pt-4">
-                  <span className={`text-xs ${!annualBilling ? 'text-white font-bold' : 'text-slate-400'}`}>Monthly Charge</span>
-                  <button 
-                    onClick={() => setAnnualBilling(!annualBilling)}
-                    className="w-12 h-6 rounded-full bg-[#1e1e1e] border border-slate-700 p-0.5 relative transition-colors focus:outline-none"
-                  >
-                    <div className={`w-4 h-4 rounded-full bg-[#00d4aa] shadow transition-transform ${annualBilling ? 'translate-x-6' : 'translate-x-0'}`} />
-                  </button>
-                  <span className={`text-xs flex items-center gap-1.5 ${annualBilling ? 'text-white font-bold' : 'text-slate-400'}`}>
-                    Annual Billing <span className="text-[9px] uppercase bg-green-950 text-[#00d4aa] font-extrabold px-2 py-0.5 rounded border border-green-900/40">Save 35%</span>
-                  </span>
-                </div>
-              </div>
+          <PricingSection 
+            onUpgradeClick={() => {
+              setIsPremiumUser(true);
+              setViewMode("dashboard");
+              setActiveTab("upgrade");
+              alert("Abonnement Premium activé dans le simulateur ! Merci.");
+            }}
+            onDashboardClick={() => {
+              setViewMode("dashboard");
+              setActiveTab("home");
+            }}
+            annualBilling={annualBilling}
+            setAnnualBilling={setAnnualBilling}
+          />
 
-              {/* 3 Tier Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto text-left items-stretch">
-                
-                {/* Free plan */}
-                <div className="bg-[#141414] border border-[#2a2a2a] p-8 rounded-[32px] flex flex-col justify-between relative">
-                  <div className="space-y-4">
-                    <span className="text-xs text-[#888] font-bold uppercase tracking-wider font-mono">Starter Sandbox</span>
-                    <h3 className="text-2xl font-extrabold text-white">Free Plan</h3>
-                    <p className="text-xs text-slate-400">Perfect to test live image scans in real-time sandbox simulation environment.</p>
-                    <div className="text-3xl font-black font-display text-white transition-all pt-2">
-                      €0 <span className="text-xs text-slate-500 font-normal">/ forever</span>
-                    </div>
-                    <ul className="space-y-3.5 text-xs text-slate-300 pt-4 border-t border-[#222]">
-                      <li className="flex items-center gap-2"><Check className="text-[#00d4aa] w-4 h-4 shrink-0" /> 10 simulated scans daily</li>
-                      <li className="flex items-center gap-2"><Check className="text-[#00d4aa] w-4 h-4 shrink-0" /> Basic macronutrient breakdown</li>
-                      <li className="flex items-center gap-2"><Check className="text-[#00d4aa] w-4 h-4 shrink-0" /> 7-day past history storage</li>
-                      <li className="flex items-center gap-2 text-slate-600"><X className="w-4 h-4 shrink-0" /> Deep Sweetener Alert block</li>
-                    </ul>
-                  </div>
-                  <button 
-                    onClick={() => {
-                      setViewMode("dashboard");
-                      setActiveTab("home");
-                    }} 
-                    className="w-full mt-8 py-3 bg-[#1e1e1e] hover:bg-slate-800 text-white font-bold rounded-xl transition-all text-center text-xs"
-                  >
-                    Launch Free Dashboard
-                  </button>
-                </div>
-
-                {/* Premium Plan (Elite Pop value) */}
-                <div className="bg-[#181818] border-2 border-[#00d4aa] p-8 rounded-[32px] flex flex-col justify-between relative shadow-[0_0_30px_rgba(0,212,170,0.15)]">
-                  <span className="absolute -top-3 right-6 bg-gradient-to-r from-[#00d4aa] to-teal-500 text-black text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded">
-                    Most Popular Choice
-                  </span>
-                  <div className="space-y-4">
-                    <span className="text-xs text-[#00d4aa] font-bold uppercase tracking-wider font-mono">Premium Elite Scanner</span>
-                    <h3 className="text-2xl font-extrabold text-white">Premium Tier</h3>
-                    <p className="text-xs text-slate-400">Instant AI scanner, sweet warnings, and complete alternate swaps suite.</p>
-                    <div className="text-3xl font-black font-display text-white transition-all pt-2">
-                      {annualBilling ? "€5.19" : "€7.99"}{" "}
-                      <span className="text-xs text-slate-500 font-normal">/ month (billed annually)</span>
-                    </div>
-                    <ul className="space-y-3.5 text-xs text-slate-200 pt-4 border-t border-slate-800">
-                      <li className="flex items-center gap-2"><Check className="text-[#00d4aa] w-4 h-4 shrink-0" /> <strong>Unlimited</strong> high precision meal scans</li>
-                      <li className="flex items-center gap-2"><Check className="text-[#00d4aa] w-4 h-4 shrink-0" /> Full Macro & Micronutrient profiles</li>
-                      <li className="flex items-center gap-2"><Check className="text-[#00d4aa] w-4 h-4 shrink-0" /> AI Coach Daily Meal suggestions</li>
-                      <li className="flex items-center gap-2"><Check className="text-[#00d4aa] w-4 h-4 shrink-0" /> Seamless Barcode + OCR image capture</li>
-                      <li className="flex items-center gap-2"><Check className="text-[#00d4aa] w-4 h-4 shrink-0" /> Deep Artificial Sweetener alerts</li>
-                    </ul>
-                  </div>
-                  <button 
-                    onClick={() => {
-                      setIsPremiumUser(true);
-                      setViewMode("dashboard");
-                      setActiveTab("upgrade");
-                      alert("Subscription successfully activated in simulator tier! Thank you for purchasing.");
-                    }} 
-                    className="w-full mt-8 py-3 bg-[#00d4aa] hover:brightness-110 text-black font-extrabold rounded-xl transition-all text-center text-xs shadow-md shadow-[#00d4aa]/20"
-                  >
-                    Get Premium Instant
-                  </button>
-                </div>
-
-                {/* Pro tier for coaches */}
-                <div className="bg-[#141414] border border-[#2a2a2a] p-8 rounded-[32px] flex flex-col justify-between relative">
-                  <div className="space-y-4">
-                    <span className="text-xs text-[#7c3aed] font-bold uppercase tracking-wider font-mono">Clinical Team System</span>
-                    <h3 className="text-2xl font-extrabold text-white">Pro Coach</h3>
-                    <p className="text-xs text-slate-400">White label dashboards for nutritionists, powerlifter coaches, and clinics.</p>
-                    <div className="text-3xl font-black font-display text-white transition-all pt-2">
-                      {annualBilling ? "€12.99" : "€19.99"}{" "}
-                      <span className="text-xs text-slate-500 font-normal">/ month</span>
-                    </div>
-                    <ul className="space-y-3.5 text-xs text-slate-300 pt-4 border-t border-[#222]">
-                      <li className="flex items-center gap-2"><Check className="text-[#00d4aa] w-4 h-4 shrink-0" /> Everything inside Premium</li>
-                      <li className="flex items-center gap-2"><Check className="text-[#00d4aa] w-4 h-4 shrink-0" /> White-label reporting for your clients</li>
-                      <li className="flex items-center gap-2"><Check className="text-[#00d4aa] w-4 h-4 shrink-0" /> Export historical data (PDF / Excel / CSV)</li>
-                      <li className="flex items-center gap-2"><Check className="text-[#00d4aa] w-4 h-4 shrink-0" /> Developer API & Multi User Profiles</li>
-                    </ul>
-                  </div>
-                  <button 
-                    onClick={() => {
-                      setIsPremiumUser(true);
-                      setViewMode("dashboard");
-                      setActiveTab("upgrade");
-                      alert("Coach Elite credentials simulated successfully.");
-                    }} 
-                    className="w-full mt-8 py-3 bg-[#7c3aed] hover:brightness-115 text-white font-bold rounded-xl transition-all text-center text-xs"
-                  >
-                    Go Pro Professional
-                  </button>
-                </div>
-
-              </div>
-
-              {/* Security badge and clinical guarantee strip */}
-              <div className="max-w-xl mx-auto border border-[#202020] bg-black/40 p-4 rounded-xl flex items-center justify-center gap-3 text-xs text-slate-400 font-medium">
-                <Shield className="text-[#00d4aa] w-5 h-5 shrink-0" />
-                <span>🛡️ 30-Day Money-Back Guarantee. Quick 1-click subscription cancel at any moment.</span>
-              </div>
-
-            </div>
-          </section>
-
-          {/* FAQ ACCORDION SECTION (8 Questions) */}
-          <section id="faq" className="py-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-[#222]">
-            <div className="text-center mb-16 space-y-2">
-              <span className="text-[#00d4aa] text-xs font-bold font-mono uppercase tracking-widest pl-1">Everything You Need To Know</span>
-              <h2 className="text-3xl font-extrabold font-display">Frequently Asked Questions</h2>
-            </div>
-
-            <div className="space-y-4">
-              {[
-                { q: "How does the AI food and snack recognition work?", a: "NutriScan processes biological shapes, labels, OCR textual grids, and colors using advanced convolutional visual models to identify meals and packages. It instantly compares the parameters against our HIPAA-grade global food repository of over 10 million cataloged items." },
-                { q: "Are secondary artificial sweeteners fully tracked?", a: "Yes. Our scanner scans nutritional lists for synthetic sweetening chemicals including Acesulfame K, Sucralose, Sodium Cyclamate, Neotame, and Aspartame, flagging them in custom warnings." },
-                { q: "Can I use NutriScan if I have gluten or lactose intolerances?", a: "Perfectly! You toggle your dietary restrictions in Step 3 of the onboarding flow. The system triggers bold hazard alerts whenever a scanned item contains traces." },
-                { q: "What is the difference between Health Score and Fitness Score?", a: "Health Score measures chemical loading, additives, whole food purity, and heart wellness indicators (1-10). Fitness Score measures raw anabolic potential, focus stimulants, and low glycaemic index macros for cutting/bulking cycles." },
-                { q: "Can I calibrate or alter my portion sizes manually?", a: "Yes. Every scan active page features a simple fluid portion size slider. Sliding it multiplies the total macronutrient output targets effortlessly." },
-                { q: "Can I export my scanned meal lists to show my coach or family doctor?", a: "Yes! The Pro Coach tier offers full export functionality to produce high-density PDF meal reports with daily macronutrient trends." },
-                { q: "Does the platform connect directly to my apple health wearable?", a: "Yes. With our premium mobile bridges, NutriScan pushes mapped caloric counts directly to Apple Health, WHOOP bands, and Fitbit databases." },
-                { q: "Is there a money-back guarantee?", a: "Absolutely. We offer an uncompromising 30-day money-back guarantee. If you are not satisfied, cancel directly from the subscription control panel." }
-              ].map((faq, idx) => (
-                <details key={idx} className="bg-[#141414] border border-[#2a2a2a] rounded-2xl p-5 group open:border-[#00d4aa] transition-all">
-                  <summary className="font-extrabold text-sm text-slate-100 cursor-pointer flex items-center justify-between select-none">
-                    <span>{faq.q}</span>
-                    <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform" />
-                  </summary>
-                  <p className="text-xs text-slate-400 mt-3 leading-relaxed border-t border-[#222] pt-3">
-                    {faq.a}
-                  </p>
-                </details>
-              ))}
-            </div>
-          </section>
+          {/* FAQ ACCORDION SECTION */}
+          <FAQSection />
 
         </div>
       )}
 
       {/* VIEW 3: LOGIN / SIGN UP */}
       {viewMode === "login" && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 flex items-center justify-center min-h-[80vh]">
-          <Login onSuccess={() => {
-            setViewMode("dashboard");
-            setActiveTab("home");
-          }} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-24 flex flex-col min-h-[calc(100vh-80px)]">
+          <div className="my-auto w-full">
+            <Login onSuccess={() => {
+              setViewMode("dashboard");
+              setActiveTab("home");
+            }} />
+          </div>
         </div>
       )}
 
@@ -1394,7 +1250,7 @@ export default function App() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
             {/* Sidebar Navigation */}
-            <aside className="lg:col-span-3 bg-[#141414] border border-[#2a2a2a] rounded-3xl p-5 space-y-6">
+            <aside className="hidden lg:block lg:col-span-3 bg-[#141414] border border-[#2a2a2a] rounded-3xl p-5 space-y-6">
               
               {/* User Identity HUD Card */}
               <div className="p-4 bg-[#1e1e1e] border border-[#2a2a2a] rounded-2xl flex items-center gap-3">
@@ -1415,9 +1271,9 @@ export default function App() {
               {/* Sidebar Tabs Links */}
               <nav className="flex flex-col gap-1.5">
                 {[
-                  { id: "home", label: "📊 Dashboard & Scanner", icon: <Layers className="w-4 h-4" /> },
-                  { id: "history", label: "🗓️ History Log & Export", icon: <Calendar className="w-4 h-4" /> },
-                  { id: "upgrade", label: "💎 Premium Upgrades", icon: <CreditCard className="w-4 h-4" /> }
+                  { id: "home", label: "📸 Scanner", icon: <Camera className="w-4 h-4" /> },
+                  { id: "history", label: "📊 Historique", icon: <Calendar className="w-4 h-4" /> },
+                  { id: "profile", label: "👤 Profil", icon: <CreditCard className="w-4 h-4" /> }
                 ].map((item) => {
                   const active = activeTab === item.id;
                   return (
@@ -1455,107 +1311,19 @@ export default function App() {
             {/* Dashboard Primary Workspace Stage */}
             <main id="main-workspace-anchor" className="lg:col-span-9 space-y-8">
               
-              {/* TAB 1: DASHBOARD HOME (Calorie tracking, water, bento elements) */}
+              {/* TAB 1: DASHBOARD HOME (Scanner Layout) */}
               {activeTab === "home" && (
-                <div className="space-y-8 animate-fade-in">
+                <div className="space-y-8 animate-fade-in max-w-3xl mx-auto pb-24 md:pb-0">
                   
-                  {/* Calorie Goal Progress Rings HUD Row */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    
-                    {/* Calorie Goal */}
-                    <div className="bg-[#141414] border border-[#2a2a2a] p-6 rounded-[28px] flex items-center justify-between relative overflow-hidden">
-                      <div className="space-y-1">
-                        <span className="text-[10px] uppercase font-mono tracking-widest text-[#888] font-bold block">Calorie Target</span>
-                        <div className="text-2xl font-black font-display text-white">
-                          {history.reduce((acc, item) => acc + (parseFloat(item.calories) || 0), 0).toFixed(0)} <span className="text-xs text-slate-500 font-normal">/ {profileCalories}</span>
-                        </div>
-                        <p className="text-[10px] text-slate-400">Calculated formula threshold limit</p>
-                      </div>
-                      <div className="relative w-16 h-16 flex items-center justify-center">
-                        {/* CSS-SVG ring progress representation */}
-                        <svg className="absolute inset-0 w-full h-full -rotate-90">
-                          <circle cx="32" cy="32" r="28" stroke="#1c1c1c" strokeWidth="6" fill="none" />
-                          <circle cx="32" cy="32" r="28" stroke="#00d4aa" strokeWidth="6" fill="none" strokeDasharray="176" 
-                            strokeDashoffset={176 - (Math.min(history.reduce((acc, item) => acc + (parseFloat(item.calories) || 0), 0) / profileCalories, 1.0) * 176)} 
-                          />
-                        </svg>
-                        <Flame className="w-6 h-6 text-[#00d4aa] animate-pulse" />
-                      </div>
-                    </div>
-
-                    {/* Integrated Protein Tracker */}
-                    <div className="bg-[#141414] border border-[#2a2a2a] p-6 rounded-[28px] flex items-center justify-between relative overflow-hidden">
-                      <div className="space-y-1">
-                        <span className="text-[10px] uppercase font-mono tracking-widest text-[#888] font-bold block">Protein Isolates</span>
-                        <div className="text-2xl font-black font-display text-white">
-                          {history.reduce((acc, item) => acc + (parseFloat(item.protein) || 0), 0).toFixed(1)}g
-                        </div>
-                        <p className="text-[10px] text-slate-400">Total cellular building blocks</p>
-                      </div>
-                      <div className="h-12 w-12 bg-blue-950/40 rounded-full flex items-center justify-center text-blue-400 border border-blue-900/30">
-                        <Trophy className="w-5 h-5" />
-                      </div>
-                    </div>
-
-                    {/* Water Hydration Log (Interactive target counter) */}
-                    <div className="bg-[#141414] border border-[#2a2a2a] p-6 rounded-[28px] relative overflow-hidden space-y-3">
-                      <div className="flex justify-between items-baseline">
-                        <div>
-                          <span className="text-[10px] uppercase font-mono tracking-widest text-[#888] font-bold block">Cellular Hydration</span>
-                          <div className="text-2xl font-black font-display text-white">
-                            {(waterCups * 250)}ml <span className="text-xs text-slate-500 font-normal">/ 2500ml</span>
-                          </div>
-                        </div>
-                        <span className="text-[10px] font-mono font-bold text-[#00d4aa] bg-[#00d4aa]/15 border border-[#00d4aa]/25 px-2 py-0.5 rounded-full">
-                          {((waterCups / waterGoalCups) * 100).toFixed(0)}% Done
-                        </span>
-                      </div>
-
-                      {/* Manual increase button triggers fluid animations */}
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => {
-                            if (waterCups < waterGoalCups + 2) setWaterCups(waterCups + 1);
-                          }}
-                          className="bg-[#00d4aa] text-black hover:brightness-110 active:scale-95 font-black text-xs px-3.5 py-2 rounded-xl flex items-center gap-1 transition-all"
-                        >
-                          <Plus className="w-3.5 h-3.5 stroke-[2.5]" /> Add 250ml Cup
-                        </button>
-                        <button
-                          onClick={() => setWaterCups(0)}
-                          className="text-[10px] font-bold border border-slate-700 text-slate-400 hover:text-white px-2.5 py-2 rounded-xl"
-                        >
-                          Reset
-                        </button>
-                      </div>
-                    </div>
-
+                  {/* Welcome Message */}
+                  <div className="pt-2 pb-4">
+                    <h2 className="text-2xl font-extrabold text-white font-display">
+                      Bonjour {localStorage.getItem("ns_boarding_name") || "👋"}
+                    </h2>
                   </div>
 
-                  {/* AI Tip of the day coach banner */}
-                  <div className="p-6 bg-gradient-to-r from-[#00d4aa]/15 via-black to-black border border-[#00d4aa]/25 rounded-[32px] flex items-start gap-4 shadow-sm relative overflow-hidden">
-                    <div className="absolute top-0 right-10 w-32 h-32 bg-[#00d4aa]/5 rounded-full blur-2xl" />
-                    <div className="p-3 bg-[#00d4aa]/15 rounded-xl text-[#00d4aa] shrink-0 border border-[#00d4aa]/30">
-                      <Sparkles className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-extrabold text-[#00d4aa] tracking-tight">AI Coach Tip for Marcus & David:</h4>
-                      <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-                        To maintain sustainable muscle isolate density and safe continuous hydration, aim to pair high protein formulas with trace dietary fibers. This balances digestion speed and prevents insulin traps typical of standard processed snacks.
-                      </p>
-                    </div>
-                  </div>
-
-
-                  {/* LIVE AI SCANNER ENGINE (OCR and actual scanning visual layout) */}
-                  <div className="bg-[#141414] border border-[#2a2a2a] p-6 sm:p-8 rounded-[32px] space-y-4 shadow-sm relative">
-                    <div className="space-y-1">
-                      <h3 className="text-xl font-bold font-display text-white">📷 Visual Diagnostic Sandbox</h3>
-                      <p className="text-xs text-slate-400">
-                        Upload a photo package of simple sports supplements, energy drinks, protein bars or home food recipes.
-                      </p>
-                    </div>
-
+                  {/* LIVE AI SCANNER ENGINE */}
+                  <div className="w-full">
                     <ScannerTab 
                       onScanComplete={handleScannerTabComplete}
                       isLoading={isLoading}
@@ -1565,223 +1333,55 @@ export default function App() {
 
                   {/* ACTIVE SCAN RESULTS VIEW PANEL */}
                   {activeResult && (
-                    <div className="bg-[#141414] border-2 border-slate-800 rounded-[36px] p-6 sm:p-8 space-y-8 relative overflow-hidden transition-all duration-300">
-                      
-                      {/* Portion adjuster modifier slider */}
-                      <div className="bg-[#1a1a1a] p-4 rounded-2xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="space-y-1">
-                          <h4 className="text-xs font-black uppercase text-[#00d4aa] font-mono tracking-widest">Adjust Portion Size Modifier</h4>
-                          <span className="text-xs text-slate-400 block">Recalculate calories, sugars and proteins continuously</span>
-                        </div>
-                        
-                        <div className="flex items-center gap-4 w-full sm:max-w-xs shrink-0">
-                          <input 
-                            type="range" 
-                            min="0.5" 
-                            max="2.5" 
-                            step="0.1"
-                            value={portionSize}
-                            onChange={(e) => setPortionSize(parseFloat(e.target.value))}
-                            className="w-full h-1 bg-[#2a2a2a] rounded-lg appearance-none cursor-pointer accent-[#00d4aa]"
-                          />
-                          <span className="text-xs font-mono font-bold bg-[#2a2a2a] border border-slate-700 px-3 py-1 rounded text-white min-w-[50px] text-center shrink-0">
-                            {portionSize.toFixed(1)}x
-                          </span>
-                        </div>
+                    <div id="scan-result-anchor" className="animate-fade-in-up">
+                      <div className="flex items-center justify-center my-8">
+                        <div className="h-px bg-gradient-to-r from-transparent via-[#2a2a2a] to-transparent w-full"></div>
+                        <span className="shrink-0 px-4 text-[10px] text-slate-500 font-mono font-bold tracking-widest uppercase">━━ Résultat ━━</span>
+                        <div className="h-px bg-gradient-to-r from-transparent via-[#2a2a2a] to-transparent w-full"></div>
                       </div>
 
-                      {/* Detailed nutrition parameters */}
-                      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-                        
-                        <div className="md:col-span-4 space-y-6">
-                          
-                          <div className="bg-black/30 border border-slate-800 rounded-2xl p-6 text-center relative flex flex-col items-center justify-center min-h-[200px]">
-                            {activeResult.imageUrl ? (
-                              <img 
-                                src={activeResult.imageUrl} 
-                                alt="Result target" 
-                                className="max-h-48 rounded object-contain"
-                              />
-                            ) : (
-                              <div className="text-7xl select-none">
-                                {activeResult.product_name.toLowerCase().includes("toast") ? "🥑" : "🥫"}
-                              </div>
-                            )}
-                            <span className="text-[10px] font-mono mt-4 uppercase tracking-widest text-[#00d4aa] bg-[#00d4aa]/10 hover:bg-[#00d4aa]/15 border border-[#00d4aa]/20 px-3 py-1 rounded-full font-bold">
-                              Confidence: {activeResult.confidence}
-                            </span>
-                          </div>
+                      <ScanResultPanel 
+                        result={activeResult} 
+                        onClear={() => setActiveResult(null)} 
+                      />
+                    </div>
+                  )}
 
-                          {/* Dual Scores */}
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="p-4 bg-slate-900/40 border border-[#2a2a2a] rounded-xl text-center space-y-1">
-                              <span className="text-[9px] font-mono text-slate-500 uppercase block">Health Grade</span>
-                              <span className="text-xl font-extrabold text-[#00d4aa] font-display">{activeResult.health_score}</span>
-                              <div className="text-[9px] text-slate-400">Pure Cleanliness</div>
-                            </div>
-                            <div className="p-4 bg-slate-900/40 border border-[#2a2a2a] rounded-xl text-center space-y-1">
-                              <span className="text-[9px] font-mono text-slate-500 uppercase block">Fitness Benefit</span>
-                              <span className="text-xl font-extrabold text-[#7c3aed] font-display">{activeResult.fitness_score}</span>
-                              <div className="text-[9px] text-slate-400">Anabolic Ratio</div>
-                            </div>
-                          </div>
-
-                        </div>
-
-                        {/* Right Nutritional Facts block */}
-                        <div className="md:col-span-8 space-y-6">
-                          <div>
-                            <span className="text-[9px] uppercase tracking-widest font-mono font-bold bg-[#1e1e1e] border border-[#2a2a2a] px-2.5 py-1 rounded text-slate-400">
-                              {activeResult.category}
-                            </span>
-                            <h2 className="text-2xl font-black text-white mt-2">
-                              {activeResult.brand} <span className="text-slate-400 font-light">{activeResult.product_name}</span>
-                            </h2>
-                            <p className="text-xs text-slate-400 mt-1">Flavor: <span className="text-slate-300 italic">{activeResult.flavor}</span></p>
-                          </div>
-
-                          {/* Allergen Monitor alerts */}
-                          {activeResult.product_name.toLowerCase().includes("toast") && (
-                            <div className="p-4 bg-rose-950/20 border border-rose-900/40 rounded-xl flex items-center gap-3 text-xs text-rose-300">
-                              <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
-                              <div>
-                                <span className="font-extrabold uppercase block">⚠️ Allergen Monitor triggered</span>
-                                contains <strong className="text-white">Gluten & Pasture Eggs</strong> standard compounds.
-                              </div>
-                            </div>
-                          )}
-
-                          {/* High sugar alerts */}
-                          {parseVal(activeResult.sugar) > 5 && (
-                            <div className="p-4 bg-amber-950/25 border border-amber-900/40 rounded-xl flex items-center gap-3 text-xs text-amber-300">
-                              <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
-                              <div>
-                                <span className="font-extrabold uppercase block">High Glycaemic load alert</span>
-                                sugar index exceeds safe recovery baseline limits.
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Macromolecule facts */}
-                          <div className="bg-[#1e1e1e] border border-[#2a2a2a] rounded-2xl p-5 space-y-4">
-                            <h4 className="text-xs font-black uppercase text-slate-400 font-mono tracking-widest border-b border-[#2a2a2a] pb-2">
-                              Nutritional values (Adjusted for {portionSize.toFixed(1)}x portion)
-                            </h4>
-
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                              <div className="p-3 bg-black/20 rounded-xl border border-slate-800">
-                                <span className="text-[10px] text-slate-500 block">Total Heat Calories</span>
-                                <span className="text-sm font-mono font-bold text-white">
-                                  {adjustPortion(activeResult.calories)} kcal
-                                </span>
-                              </div>
-                              <div className="p-3 bg-black/20 rounded-xl border border-slate-800">
-                                <span className="text-[10px] text-slate-500 block">Protein Content</span>
-                                <span className="text-sm font-mono font-bold text-[#00d4aa]">
-                                  {adjustPortion(activeResult.protein)}g
-                                </span>
-                              </div>
-                              <div className="p-3 bg-black/20 rounded-xl border border-slate-800">
-                                <span className="text-[10px] text-slate-500 block">Carbohydrates</span>
-                                <span className="text-sm font-mono font-bold text-white">
-                                  {adjustPortion(activeResult.carbs)}g
-                                </span>
-                              </div>
-                              <div className="p-3 bg-black/20 rounded-xl border border-slate-800">
-                                <span className="text-[10px] text-slate-500 block">Of which Sugars</span>
-                                <span className="text-sm font-mono font-bold text-slate-300">
-                                  {adjustPortion(activeResult.sugar)}g
-                                </span>
-                              </div>
-                              <div className="p-3 bg-black/20 rounded-xl border border-slate-800">
-                                <span className="text-[10px] text-slate-500 block">Raw Lipids / Fats</span>
-                                <span className="text-sm font-mono font-bold text-slate-300">
-                                  {adjustPortion(activeResult.fat)}g
-                                </span>
-                              </div>
-                              <div className="p-3 bg-black/20 rounded-xl border border-slate-800">
-                                <span className="text-[10px] text-slate-500 block">Total Caffeine</span>
-                                <span className="text-sm font-mono font-bold text-white">
-                                  {activeResult.caffeine}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Sweeteners checklist block */}
-                          <div className="bg-[#1e1e1e] border border-[#2a2a2a] p-5 rounded-2xl space-y-3">
-                            <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 font-mono">
-                              Chemical sweetening compounds parsed
-                            </h4>
-                            {activeResult.sweeteners && activeResult.sweeteners.length > 0 && activeResult.sweeteners[0] !== "None" ? (
-                              <div className="flex flex-wrap gap-2">
-                                {activeResult.sweeteners.map((sweet, i) => (
-                                  <span key={i} className="text-[10px] font-mono font-bold border border-rose-950 bg-rose-950/20 px-3 py-1 rounded-lg text-rose-300">
-                                    🚫 {sweet}
-                                  </span>
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="text-xs text-emerald-400 font-bold block">
-                                ✅ No synthetic artificial sweeteners detected.
-                              </span>
-                            )}
-                          </div>
-
-                          {/* AI Insight explanation coach summaries */}
-                          <div className="p-5 bg-[#00d4aa]/5 border border-[#00d4aa]/20 rounded-2xl space-y-2">
-                            <h4 className="text-xs uppercase font-bold tracking-widest text-[#00d4aa] font-mono">Nutriscan Diagnostic Coach summary</h4>
-                            <p className="text-xs text-slate-300 leading-relaxed font-sans mt-1">
-                              {activeResult.summary}
-                            </p>
-                          </div>
-
-                          {/* Similar Healthier Alternatives Row (Fluid Premium recommendations layout) */}
-                          <div className="p-5 bg-gradient-to-r from-emerald-950/20 to-black border border-emerald-900/30 rounded-2xl space-y-3">
-                            <h4 className="text-xs leading-none uppercase font-black text-emerald-400 font-mono tracking-wider">
-                              🍃 Recommended Healthier Alternatives & Swaps:
-                            </h4>
-                            <div className="space-y-2.5">
-                              {getAlternatesList(activeResult.category).map((alt, i) => (
-                                <div key={i} className="p-3 bg-[#111] border border-[#222] rounded-xl flex items-center justify-between gap-3 text-xs text-slate-300 hover:border-emerald-800 transition-colors">
-                                  <div>
-                                    <span className="font-bold text-white block">{alt.name}</span>
-                                    <span className="text-[10px] text-slate-500">{alt.reason}</span>
-                                  </div>
-                                  <div className="text-right shrink-0">
-                                    <span className="text-[10px] font-mono text-[#00d4aa] font-bold block">{alt.cal}</span>
-                                    <span className="text-[9px] font-mono text-slate-400 font-bold uppercase">{alt.health} Health</span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Add to daily meal log trackers button */}
-                          <button
+                  {/* RECENT HISTORY BLOCK */}
+                  {history.length > 0 && !activeResult && (
+                    <div className="pt-12 text-center space-y-6 max-w-lg mx-auto border-t border-[#2a2a2a]/40">
+                      <h3 className="text-base font-bold text-white">Tes derniers scans</h3>
+                      <div className="flex flex-col gap-3">
+                        {history.slice(0, 3).map((item, idx) => (
+                          <div 
+                            key={idx}
                             onClick={() => {
-                              alert("Caloric counts have been added to your daily fitness timeline successfully.");
+                              setActiveResult(item);
+                              setTimeout(() => {
+                                document.getElementById('scan-result-anchor')?.scrollIntoView({ behavior: 'smooth' });
+                              }, 100);
                             }}
-                            className="bg-[#00d4aa] hover:brightness-110 active:scale-95 text-black font-extrabold text-xs uppercase tracking-wider py-3.5 px-6 rounded-xl flex items-center justify-center gap-1.5 transition-transform w-full shadow-lg"
+                            className="flex items-center gap-4 bg-[#141414] hover:bg-[#1a1a1a] p-4 rounded-2xl border border-[#2a2a2a] cursor-pointer transition-colors text-left"
                           >
-                            <Plus className="w-4 h-4 stroke-[2.5]" /> Log Into Today's Meals
-                          </button>
-
-                          {/* Clear result */}
-                          <button
-                            onClick={() => {
-                              setActiveResult(null);
-                              window.scrollTo({ top: 0, behavior: "smooth" });
-                            }}
-                            className="w-full text-center text-xs text-slate-500 hover:text-white pt-2 transition-colors"
-                          >
-                            Clear scanning view
-                          </button>
-
-                        </div>
-
+                            <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-black/50 border border-slate-800 flex items-center justify-center">
+                              {item.imageUrl ? (
+                                <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-2xl">🥑</span>
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h4 className="text-sm font-bold text-white truncate">{item.product_name}</h4>
+                              <p className="text-[10px] text-slate-400 font-mono uppercase tracking-widest mt-1">
+                                {item.health_score || 0}/100 • {item.calories || 0}
+                              </p>
+                            </div>
+                            <div className="shrink-0 text-[#00FF88]">
+                              <ChevronRight className="w-5 h-5" />
+                            </div>
+                          </div>
+                        ))}
                       </div>
-
                     </div>
                   )}
 
@@ -1870,8 +1470,8 @@ export default function App() {
                 </div>
               )}
 
-              {/* TAB 4: UPGRADE OPTIONS TIER */}
-              {activeTab === "upgrade" && (
+              {/* TAB 4: PROFILE / PREMIUM */}
+              {activeTab === "profile" && (
                 <div className="space-y-8 animate-fade-in text-center">
                   
                   <div className="bg-[#141414] border border-[#2a2a2a] p-8 sm:p-12 rounded-[32px] space-y-6 max-w-2xl mx-auto">
@@ -2069,11 +1669,11 @@ export default function App() {
       )}
 
       {/* FOOTER BAR */}
-      <footer className="border-t border-[#202020] bg-black py-12 mt-20 text-center space-y-6">
+      <footer className="border-t border-[#202020] bg-black py-12 mt-20 text-center space-y-6 pb-28 md:pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-left">
             <span className="font-extrabold tracking-tight text-white block">
-              NutriScan <span className="text-[#00d4aa]">AI</span>
+              NutriScan <span className="text-[#00FF88]">AI</span>
             </span>
             <p className="text-[10px] text-slate-500 mt-1 uppercase font-mono tracking-widest">
               Commercial clinical sport diagnostic compounds
@@ -2102,6 +1702,29 @@ export default function App() {
           © 2026 NUTRISCAN SAAS INC. CLINIC METRIC ANALYSIS CLUSTER. ALL RIGHTS RESERVED.
         </div>
       </footer>
+
+      {/* MOBILE BOTTOM NAVIGATION BAR */}
+      {viewMode === "dashboard" && (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0d0d0d]/95 backdrop-blur-md border-t border-[#2a2a2a] z-50 px-6 flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.8)] pb-safe-offset" style={{ paddingBottom: "env(safe-area-inset-bottom, 1rem)", height: "calc(60px + env(safe-area-inset-bottom, 0px))" }}>
+          
+          <button onClick={() => { setActiveTab("home"); }} className="flex flex-col items-center justify-center relative active:scale-95 transition-transform" style={{ width: '33%' }}>
+            <div className={`absolute -bottom-[16px] h-[64px] w-[64px] rounded-full flex items-center justify-center border-4 border-[#0d0d0d] shadow-[0_0_20px_rgba(0,255,136,0.2)] ${activeTab === 'home' ? 'bg-[#00FF88]' : 'bg-[#1a1a1a] border-[#2a2a2a]'}`}>
+              <span className="text-3xl">📸</span>
+            </div>
+            <span className={`text-[10px] font-bold mt-[26px] ${activeTab === "home" ? "text-[#00FF88]" : "text-slate-400"}`}>Scanner</span>
+          </button>
+
+          <button onClick={() => { setActiveTab("history"); }} className={`flex flex-col items-center justify-center p-2 w-[33%] ${activeTab === "history" ? "text-[#00FF88]" : "text-slate-400"}`}>
+            <span className="text-[22px] leading-none mb-1">📊</span>
+            <span className="text-[10px] font-bold">Historique</span>
+          </button>
+
+          <button onClick={() => { setActiveTab("profile"); }} className={`flex flex-col items-center justify-center p-2 w-[33%] ${activeTab === "profile" ? "text-[#00FF88]" : "text-slate-400"}`}>
+            <span className="text-[22px] leading-none mb-1">👤</span>
+            <span className="text-[10px] font-bold">Profil</span>
+          </button>
+        </div>
+      )}
 
     </div>
   );

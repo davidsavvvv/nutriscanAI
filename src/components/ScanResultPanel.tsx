@@ -96,11 +96,11 @@ export default function ScanResultPanel({ result, onClear }: ScanResultPanelProp
                 src={result.imageUrl} 
                 alt={result.product_name} 
                 referrerPolicy="no-referrer"
-                className="max-h-52 w-auto object-contain rounded-xl shadow-sm filter contrast-105"
+                className="w-[150px] h-[150px] object-cover rounded-full shadow-sm filter contrast-105 mx-auto"
               />
             ) : (
               <div 
-                className="w-full flex items-center justify-center scale-95"
+                className="w-[150px] h-[150px] flex items-center justify-center rounded-full drop-shadow-xl mx-auto"
                 dangerouslySetInnerHTML={{ __html: productSvg }}
               />
             )}
@@ -181,28 +181,28 @@ export default function ScanResultPanel({ result, onClear }: ScanResultPanelProp
                 <h3 className="text-slate-800 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-1.5 border-b border-slate-100 pb-2.5">
                   <Activity className="w-4 h-4 text-emerald-500" /> Valeurs Nutritionnelles (pour 100g)
                 </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                <div className="flex md:grid md:grid-cols-3 gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-2">
+                  <div className="min-w-[140px] shrink-0 snap-start bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
                     <div className="text-[10px] text-slate-400 font-mono tracking-wider">Calories</div>
                     <div className="text-lg font-bold text-slate-800">{result.nutrition_100g?.calories}</div>
                   </div>
-                  <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                  <div className="min-w-[140px] shrink-0 snap-start bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
                     <div className="text-[10px] text-slate-400 font-mono tracking-wider">Protéines</div>
                     <div className="text-lg font-bold text-slate-800">{result.nutrition_100g?.protein}</div>
                   </div>
-                  <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                  <div className="min-w-[160px] shrink-0 snap-start bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
                     <div className="text-[10px] text-slate-400 font-mono tracking-wider">Glucides <span className="text-[9px] font-normal text-rose-500 lowercase">(dont {result.nutrition_100g?.sugar})</span></div>
                     <div className="text-lg font-bold text-slate-800">
                       {result.nutrition_100g?.carbs}
                     </div>
                   </div>
-                  <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                  <div className="min-w-[160px] shrink-0 snap-start bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
                     <div className="text-[10px] text-slate-400 font-mono tracking-wider">Lipides <span className="text-[9px] font-normal text-orange-500 lowercase">(dont {result.nutrition_100g?.saturated_fat})</span></div>
                     <div className="text-lg font-bold text-slate-800">
                       {result.nutrition_100g?.fat}
                     </div>
                   </div>
-                  <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-center gap-1">
+                  <div className="min-w-[140px] shrink-0 snap-start bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-center gap-1">
                     <div className="flex justify-between items-end">
                       <div className="text-[10px] text-slate-400 font-mono tracking-wider">Fibres</div>
                       <div className="text-sm font-bold text-slate-800 mt-1">{result.nutrition_100g?.fiber}</div>
@@ -213,7 +213,7 @@ export default function ScanResultPanel({ result, onClear }: ScanResultPanelProp
                       <div className="text-sm font-bold text-slate-800">{result.nutrition_100g?.salt}</div>
                     </div>
                   </div>
-                  <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-center">
+                  <div className="min-w-[140px] shrink-0 snap-start bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-center">
                     <div className="text-[10px] text-slate-400 font-mono tracking-wider">Eau</div>
                     <div className="text-xl font-bold text-sky-500 mt-1">{result.nutrition_100g?.water}</div>
                   </div>

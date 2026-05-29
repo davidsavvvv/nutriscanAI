@@ -17,6 +17,7 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading }: 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const uploadInputRef = useRef<HTMLInputElement | null>(null);
 
   // Stop camera stream on unmount
   useEffect(() => {
@@ -176,26 +177,27 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading }: 
       
       {/* Scanner Box container */}
       <div 
-        className={`relative aspect-video max-w-2xl mx-auto w-full rounded-2xl border-2 flex flex-col items-center justify-center overflow-hidden transition-all bg-slate-50/50 ${
-          dragActive ? "border-slate-400 bg-slate-100/50" : "border-slate-200 border-dashed"
+        className={`relative w-full flex flex-col items-center justify-center transition-all ${
+          dragActive ? "opacity-70 scale-[0.98]" : ""
         }`}
         onDragEnter={handleDrag}
         onDragOver={handleDrag}
         onDragLeave={handleDrag}
         onDrop={handleDrop}
       >
-        {/* Animated Green Scanning Laser Overlay (only active when loading) */}
+        {/* Animated Scanning Laser Overlay (only active when loading) */}
         {isLoading && (
-          <div className="absolute inset-0 z-30 pointer-events-none overflow-hidden">
-            {/* The laser light bar */}
-            <div className="w-full h-1.5 bg-gradient-to-r from-transparent via-slate-800 to-transparent shadow-[0_0_15px_#1e293b] absolute top-0 animate-[bounce_3s_infinite_ease-in-out]"></div>
-            <div className="absolute inset-0 bg-slate-200/10 backdrop-blur-[0.5px]"></div>
+          <div className="absolute inset-0 z-30 pointer-events-none rounded-3xl overflow-hidden shrink-0 mt-2">
+            <div className="w-full h-1.5 bg-[#00FF88] shadow-[0_0_20px_#00FF88] absolute top-1/2 -translate-y-1/2 animate-pulse"></div>
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-3xl flex items-center justify-center text-white font-bold tracking-widest text-xs uppercase z-40">
+              Extraction en cours...
+            </div>
           </div>
         )}
 
         {/* 1. Camera live active stream */}
         {cameraActive && (
-          <div className="absolute inset-0 w-full h-full z-10 flex flex-col">
+          <div className="w-full aspect-video relative z-10 flex flex-col rounded-[24px] overflow-hidden bg-black mb-4 mt-2 border border-slate-800">
             <video 
               ref={videoRef} 
               playsInline 
@@ -207,16 +209,16 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading }: 
               <button
                 type="button"
                 onClick={captureSnapshot}
-                className="bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-display font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-full flex items-center gap-2 shadow-sm cursor-pointer"
+                className="bg-[#00FF88] text-black font-display font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-full flex items-center gap-2 shadow-sm cursor-pointer"
               >
-                <Camera className="w-4 h-4" /> Capture Product Snapshot
+                <Camera className="w-4 h-4" /> Capturer
               </button>
               <button
                 type="button"
                 onClick={stopCamera}
-                className="bg-white hover:bg-slate-100 text-slate-700 font-mono text-[10px] uppercase tracking-wider px-4 py-2 rounded-full border border-slate-200 cursor-pointer shadow-sm"
+                className="bg-black/60 hover:bg-black text-white font-mono text-[10px] uppercase tracking-wider px-4 py-2 rounded-full cursor-pointer shadow-sm border border-slate-700"
               >
-                Cancel
+                Annuler
               </button>
             </div>
           </div>
@@ -224,20 +226,20 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading }: 
 
         {/* 2. Image preview stage */}
         {imagePreview ? (
-          <div className="absolute inset-0 w-full h-full z-10 flex flex-col justify-between items-center bg-slate-50 p-4">
+          <div className="w-full relative z-10 flex flex-col items-center p-6 bg-[#141414] rounded-[24px] border-2 border-slate-800 mt-2">
             <img 
               src={imagePreview} 
               alt="Scan Preview" 
-              className="max-h-[80%] w-auto object-contain rounded-2xl border border-slate-200 shadow-sm"
+              className="max-h-[300px] w-auto object-contain rounded-xl border border-[#2a2a2a] shadow-lg mb-6"
             />
             
-            <div className="flex gap-4 w-full justify-center max-w-sm">
+            <div className="flex gap-4 w-full justify-center">
               <button
                 onClick={triggerScan}
                 disabled={isLoading}
-                className="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-bold font-display text-xs uppercase tracking-wider py-3 px-5 rounded-full flex items-center justify-center gap-2 shadow-sm disabled:opacity-40 select-none cursor-pointer active:scale-[0.98] transition-all"
+                className="flex-1 bg-[#00FF88] text-black font-bold font-display text-xs uppercase tracking-wider py-4 px-5 rounded-[16px] flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(0,255,136,0.15)] disabled:opacity-40 cursor-pointer active:scale-[0.98] transition-all"
               >
-                <Sparkles className="w-4 h-4 animate-spin-slow" /> {isLoading ? "Analyzing Product..." : "Trigger AI Scans"}
+                <Sparkles className="w-4 h-4 animate-spin-slow" /> {isLoading ? "Analyse..." : "Lancer l'IA"}
               </button>
 
               <button
@@ -246,9 +248,9 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading }: 
                   setCameraActive(false);
                 }}
                 disabled={isLoading}
-                className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono text-[10px] uppercase px-4 py-3 rounded-full cursor-pointer border border-slate-200/50"
+                className="bg-transparent hover:bg-slate-900 border-2 border-slate-800 text-slate-400 font-bold text-xs uppercase px-5 py-4 rounded-[16px] cursor-pointer"
               >
-                Reset photo
+                Annuler
               </button>
             </div>
           </div>
@@ -256,40 +258,38 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading }: 
 
         {/* 3. Drag Drop and Selection Default Interface */}
         {!cameraActive && !imagePreview && (
-          <div className="p-8 text-center flex flex-col items-center">
-            <div className="h-16 w-16 rounded-full bg-slate-100 border border-slate-200/80 flex items-center justify-center mb-4 text-slate-500 transition-colors">
-              <Upload className="w-8 h-8" />
-            </div>
-            
-            <h4 className="text-slate-900 font-display font-semibold text-base">
-              Drag snack product photo here, or <span className="text-slate-950 font-bold underline cursor-pointer hover:text-slate-800" onClick={() => fileInputRef.current?.click()}>browse files</span>
-            </h4>
-            <p className="text-xs text-slate-400 mt-2 max-w-sm leading-relaxed">
-              Supported file types: PNG, JPEG, WEBP. Focus carefully on the brand labels and nutrition facts block.
-            </p>
+          <div className="w-full text-center flex flex-col gap-4 mt-2">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full h-[120px] bg-[#00FF88] hover:bg-[#00e67a] active:scale-[0.98] text-black rounded-[24px] flex flex-col items-center justify-center shadow-[0_0_30px_rgba(0,255,136,0.2)] transition-all cursor-pointer border border-[#00d4aa]"
+            >
+              <span className="text-4xl mb-1">📸</span>
+              <span className="font-extrabold text-2xl font-display tracking-wider block">Prendre une photo</span>
+              <span className="text-xs font-semibold opacity-70 mt-0.5">Pointe vers l'étiquette ou l'aliment</span>
+            </button>
 
-            {/* Camera option togglers */}
-            <div className="flex flex-col sm:flex-row gap-3 mt-6">
-              <button
-                onClick={startCamera}
-                className="text-xs font-display font-bold uppercase bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-full border border-slate-900 flex items-center gap-2 cursor-pointer active:scale-95 transition-all"
-              >
-                <Camera className="w-4 h-4 text-white" /> Start Device Camera
-              </button>
-              
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="text-xs font-display font-bold uppercase bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-full border border-slate-200 flex items-center gap-2 cursor-pointer transition-all"
-              >
-                <ImageIcon className="w-4 h-4 text-slate-500" /> Select File
-              </button>
-            </div>
+            <button
+              onClick={() => uploadInputRef.current?.click()}
+              className="w-full h-[54px] bg-[#1a1a1a] hover:bg-[#222] border-2 border-[#2a2a2a] text-slate-300 font-bold text-[13px] rounded-[16px] flex items-center justify-center transition-all cursor-pointer"
+            >
+              <Upload className="w-4 h-4 mr-2 opacity-50" /> Télécharger une photo
+            </button>
           </div>
         )}
 
-        {/* Invisible file input */}
+        {/* Invisible file input for direct camera capture */}
         <input 
           ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={handleFileInputChange}
+        />
+
+        {/* Secondary file input for standard gallery/file picker upload */}
+        <input 
+          ref={uploadInputRef}
           type="file"
           accept="image/*"
           className="hidden"

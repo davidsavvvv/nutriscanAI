@@ -38,7 +38,7 @@ export function HeroSection({ onCtaClick }: HeroSectionProps) {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.5 }}
-                className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight font-display text-white px-4"
+                className="text-[2.5rem] leading-[1.1] md:text-6xl font-extrabold tracking-tight font-display text-white px-5 md:px-4"
               >
                 {headlines[currentHeadline]}
               </motion.h1>
@@ -46,21 +46,21 @@ export function HeroSection({ onCtaClick }: HeroSectionProps) {
           </div>
 
           <div className="space-y-6">
-            <h2 className="text-xl sm:text-2xl font-bold font-mono text-[#00FF88] tracking-widest uppercase">
+            <h2 className="text-[1.1rem] md:text-2xl font-bold font-mono text-[#00FF88] tracking-widest uppercase">
               Scanne. Découvre. Transforme-toi.
             </h2>
 
-            <div className="text-slate-300 text-sm md:text-lg max-w-2xl mx-auto leading-relaxed space-y-2 font-medium">
+            <div className="text-slate-300 text-base md:text-lg max-w-2xl mx-auto leading-relaxed space-y-2 font-medium px-5 md:px-0">
               <p>80% des gens ne lisent jamais les étiquettes.</p>
               <p>Les 20% qui le font vivent mieux.</p>
               <p className="font-bold text-white">Fais partie des 20%.</p>
             </div>
           </div>
 
-          <div className="pt-8">
+          <div className="pt-8 px-5 md:px-0">
             <button
               onClick={onCtaClick}
-              className="px-8 py-5 rounded-full bg-[#00FF88] hover:bg-[#00e67a] hover:scale-105 active:scale-95 text-black font-extrabold text-sm md:text-base tracking-wider shadow-[0_0_40px_rgba(0,255,136,0.4)] transition-all flex items-center justify-center gap-3 mx-auto"
+              className="w-full md:w-auto px-8 py-5 rounded-full bg-[#00FF88] hover:bg-[#00e67a] hover:scale-105 active:scale-95 text-black font-extrabold text-base md:text-base tracking-wider shadow-[0_0_40px_rgba(0,255,136,0.4)] transition-all flex items-center justify-center gap-3 mx-auto min-h-[50px]"
             >
               📸 Je veux savoir ce que je mange →
             </button>
@@ -71,13 +71,13 @@ export function HeroSection({ onCtaClick }: HeroSectionProps) {
 
       {/* Phrase Choc Section (Scroll block) */}
       <section className="bg-black py-40 border-y border-[#202020] relative">
-        <div className="max-w-4xl mx-auto px-4 text-center">
+        <div className="max-w-4xl mx-auto px-5 md:px-4 text-center">
           <motion.h2 
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.8 }}
-            className="text-3xl sm:text-5xl md:text-6xl font-black text-white leading-tight font-display"
+            className="text-[2rem] leading-tight sm:text-5xl md:text-6xl font-black text-white font-display"
           >
             "Le sucre caché dans ton yaourt 'light' <br/><span className="text-[#00FF88]">ruine tes efforts.</span>"
           </motion.h2>
