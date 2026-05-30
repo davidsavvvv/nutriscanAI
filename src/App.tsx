@@ -11,6 +11,7 @@ import { TestimonialsSection } from "./components/TestimonialsSection";
 import { PricingSection } from "./components/PricingSection";
 import { FAQSection } from "./components/FAQSection";
 import ScanResultPanel from "./components/ScanResultPanel";
+import CoachPanel from "./components/CoachPanel";
 import { supabase } from "./lib/supabase";
 import { 
   Sparkles, ShieldCheck, Zap, Layers, Trophy, Flame, Camera, Upload, 
@@ -60,7 +61,12 @@ export default function App() {
   const [waterCups, setWaterCups] = useState(0);
   const waterGoalCups = 10; // 2500ml
 
-  // Pricing premium annual toggle
+  // History Page Specific state
+  const [selectedHistoryDate, setSelectedHistoryDate] = useState<string>(() => {
+    return new Date().toISOString().split('T')[0];
+  });
+  const [showWeeklyReportModal, setShowWeeklyReportModal] = useState(false);
+
   const [annualBilling, setAnnualBilling] = useState(true);
   const [isPremiumUser, setIsPremiumUser] = useState(false);
   
@@ -1273,6 +1279,7 @@ export default function App() {
                 {[
                   { id: "home", label: "📸 Scanner", icon: <Camera className="w-4 h-4" /> },
                   { id: "history", label: "📊 Historique", icon: <Calendar className="w-4 h-4" /> },
+                  { id: "coach", label: "🐙 Coach", icon: <MessageSquare className="w-4 h-4" /> },
                   { id: "profile", label: "👤 Profil", icon: <CreditCard className="w-4 h-4" /> }
                 ].map((item) => {
                   const active = activeTab === item.id;
@@ -1389,88 +1396,248 @@ export default function App() {
               )}
 
               {/* TAB 3: CALENDAR FEED MEAL HISTORIES LOGS & HIGHLIGHTS */}
-              {activeTab === "history" && (
-                <div className="space-y-8 animate-fade-in">
+              {activeTab === "history" && (() => {
+                  const todayObj = new Date();
+                  todayObj.setHours(0,0,0,0);
                   
-                  <div className="bg-[#141414] border border-[#2a2a2a] p-6 sm:p-8 rounded-[32px] space-y-4 shadow-sm">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#232323] pb-4">
-                      <div>
-                        <h3 className="text-xl font-bold font-display text-white">🗓️ Mapped Meal History Logs</h3>
-                        <p className="text-xs text-slate-400">All scanned gym formulations and snacks parsed by day.</p>
+                  const calendarDays = [];
+                  for (let i = 6; i >= 0; i--) {
+                    const d = new Date(todayObj);
+                    d.setDate(todayObj.getDate() - i);
+                    calendarDays.push(d);
+                  }
+
+                  const selectedDateObj = new Date(selectedHistoryDate);
+                  const selectedDateISO = selectedDateObj.toISOString().split('T')[0];
+                  
+                  // Format Date Label (e.g. "Jeudi 29 Mai 2026")
+                  const dateLabel = selectedDateObj.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                  const capitalizedDateLabel = dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1);
+                  const isTodaySelected = selectedDateISO === todayObj.toISOString().split('T')[0];
+
+                  const dailyScans = history.filter(item => {
+                    if (!item.scannedAt) return false;
+                    return item.scannedAt.split('T')[0] === selectedDateISO;
+                  });
+
+                  // Summaries
+                  const dCals = dailyScans.reduce((sum, item) => sum + (parseFloat(item.calories) || 0), 0);
+                  const dProts = dailyScans.reduce((sum, item) => sum + (parseFloat(item.protein) || 0), 0);
+                  const dSugars = dailyScans.reduce((sum, item) => sum + (parseFloat(item.sugar) || 0), 0);
+                  const dLipids = dailyScans.reduce((sum, item) => sum + (parseFloat(item.fat) || 0), 0);
+                  const dCarbs = dailyScans.reduce((sum, item) => sum + (parseFloat(item.carbs) || 0), 0);
+                  
+                  let validScores = 0; let totalScore = 0;
+                  dailyScans.forEach(item => { 
+                    const match = item.health_score?.match(/(\d+)/);
+                    if (match) {
+                      const s = parseFloat(match[0]);
+                      if (!isNaN(s) && s > 0) { totalScore += s; validScores++; }
+                    }
+                  });
+                  const avgHealthScore = validScores > 0 ? (totalScore / validScores).toFixed(1) : "-";
+
+                  // Groupings
+                  const getMealTimeInfo = (isoStr: string) => {
+                    const d = new Date(isoStr);
+                    const h = d.getHours();
+                    const timeStr = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                    if (h >= 6 && h < 11) return { group: "🌅 Matin (6h-11h)", time: timeStr, order: 1 };
+                    if (h >= 11 && h < 14) return { group: "☀️ Midi (11h-14h)", time: timeStr, order: 2 };
+                    if (h >= 14 && h < 18) return { group: "🌆 Après-midi (14h-18h)", time: timeStr, order: 3 };
+                    return { group: "🌙 Soir (18h-23h)", time: timeStr, order: 4 };
+                  };
+
+                  const groupedScans = dailyScans.reduce((groups, item) => {
+                    const info = getMealTimeInfo(item.scannedAt!);
+                    if(!groups[info.group]) groups[info.group] = { order: info.order, items: [] };
+                    groups[info.group].items.push({...item, displayTime: info.time});
+                    return groups;
+                  }, {} as Record<string, { order: number, items: any[] }>);
+                  const sortedGroups = (Object.entries(groupedScans) as [string, { order: number, items: any[] }][]).sort((a, b) => a[1].order - b[1].order);
+
+                  return (
+                    <div className="space-y-6 animate-fade-in w-full max-w-3xl mx-auto pb-24 md:pb-0">
+                      
+                      {/* TOP - DAILY SUMMARY CARD */}
+                      <div className="bg-[#141414] border border-[#2a2a2a] p-6 rounded-[32px] space-y-6 shadow-sm relative overflow-hidden">
+                        <div className="text-center space-y-1">
+                          <h3 className="text-[10px] font-mono tracking-widest uppercase text-slate-500">Résumé Journalier</h3>
+                          <h2 className="text-xl font-bold font-display text-white capitalize">
+                            📅 {capitalizedDateLabel}
+                          </h2>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-black/50 p-4 rounded-3xl border border-[#222] relative overflow-hidden">
+                            <h4 className="text-3xl font-black font-display text-white">🔥 {Math.round(dCals)} <span className="text-[10px] font-normal text-slate-500 uppercase tracking-widest font-mono">kcal</span></h4>
+                            <span className="text-xs text-slate-400 block mt-1">Calories aujourd'hui</span>
+                            <div className="h-2 w-full bg-[#1a1a1a] rounded-full overflow-hidden mt-3 max-w-[80%]">
+                              <div className="h-full bg-[#00FF88] rounded-full transition-all duration-700" style={{ width: `${Math.min((dCals / profileCalories) * 100, 100)}%` }}></div>
+                            </div>
+                            <div className="text-[10px] mt-1 text-slate-500 font-mono">{Math.round(dCals)} / {profileCalories}</div>
+                          </div>
+                          <div className="bg-black/50 p-4 rounded-3xl border border-[#222] relative overflow-hidden">
+                            <h4 className="text-3xl font-black font-display text-white">💪 {dProts.toFixed(1)} <span className="text-[10px] font-normal text-slate-500 uppercase tracking-widest font-mono">g</span></h4>
+                            <span className="text-xs text-slate-400 block mt-1">Protéines aujourd'hui</span>
+                            <div className="h-2 w-full bg-[#1a1a1a] rounded-full overflow-hidden mt-3 max-w-[80%]">
+                              <div className="h-full bg-blue-500 rounded-full transition-all duration-700" style={{ width: `${Math.min((dProts / 150) * 100, 100)}%` }}></div>
+                            </div>
+                            <div className="text-[10px] mt-1 text-slate-500 font-mono">{dProts.toFixed(1)} / 150</div>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between bg-black/30 border border-[#2a2a2a] rounded-2xl p-4 text-[11px] sm:text-xs font-mono font-bold text-slate-300">
+                          <div className="flex flex-col items-center"><span className="text-slate-500 text-[10px] mb-1">🍬 Sucres</span>{dSugars.toFixed(1)}g</div>
+                          <div className="w-px bg-[#2a2a2a]"></div>
+                          <div className="flex flex-col items-center"><span className="text-slate-500 text-[10px] mb-1">🧈 Lipides</span>{dLipids.toFixed(1)}g</div>
+                          <div className="w-px bg-[#2a2a2a]"></div>
+                          <div className="flex flex-col items-center"><span className="text-slate-500 text-[10px] mb-1">🌾 Glucides</span>{dCarbs.toFixed(1)}g</div>
+                        </div>
+
+                        {isTodaySelected && (
+                          <div className="text-center text-[10px] text-slate-500 pt-2 font-mono uppercase tracking-widest">
+                            🔄 Remise à zéro automatique à minuit
+                          </div>
+                        )}
                       </div>
-                      <div className="flex gap-2 shrink-0">
+
+                      {/* MINI CALENDAR HORIZONTAL */}
+                      <div className="flex overflow-x-auto gap-2 pb-2 hide-scrollbar snap-x [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden w-full">
+                        {calendarDays.map((d, i) => {
+                          const dateISO = d.toISOString().split('T')[0];
+                          const isSelected = selectedDateISO === dateISO;
+                          
+                          // Check if day has scans
+                          const hasScans = history.some(item => item.scannedAt && item.scannedAt.split('T')[0] === dateISO);
+                          
+                          const dayName = d.toLocaleDateString('fr-FR', { weekday: 'short' });
+                          const dayNum = d.toLocaleDateString('fr-FR', { day: 'numeric' });
+
+                          return (
+                            <button
+                              key={i}
+                              onClick={() => setSelectedHistoryDate(dateISO)}
+                              className={`shrink-0 snap-center flex flex-col items-center justify-center py-3 px-4 rounded-2xl border transition-all ${
+                                isSelected 
+                                  ? "bg-[#00FF88] text-black border-[#00FF88] shadow-[0_0_15px_rgba(0,255,136,0.3)]" 
+                                  : "bg-[#141414] text-slate-400 border-[#2a2a2a] hover:bg-[#1a1a1a]"
+                              } min-w-[70px] cursor-pointer`}
+                            >
+                              <span className="text-[10px] uppercase font-bold" style={{ color: isSelected ? 'rgba(0,0,0,0.6)' : undefined }}>{dayName}</span>
+                              <span className={`text-xl font-black font-display leading-tight mt-0.5 ${isSelected ? "text-black" : "text-white"}`}>{dayNum}</span>
+                              <div className={`w-1.5 h-1.5 rounded-full mt-1.5 ${
+                                hasScans ? (isSelected ? "bg-black/50" : "bg-[#00FF88]") : "bg-[#2a2a2a]"
+                              }`}></div>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* ACTIONS ROW */}
+                      <div className="flex gap-3">
                         <button
-                          onClick={() => {
-                            alert("Clinical PDF Nutrition Report generated! Proceed to save files simulation.");
-                          }}
-                          className="bg-[#1a1a1a] border border-[#2b2b2b] hover:border-slate-400 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 transition-all"
+                          onClick={() => setShowWeeklyReportModal(true)}
+                          className="flex-1 bg-[#1a1a1a] border-2 border-[#2a2a2a] hover:bg-[#222] text-white font-bold text-[13px] py-4 rounded-[20px] transition-all flex justify-center items-center gap-2 cursor-pointer"
                         >
-                          <FileText className="w-3.5 h-3.5" /> PDF Report
+                          📊 Rapport de la semaine
                         </button>
                         <button
                           onClick={clearAllScans}
                           disabled={history.length === 0}
-                          className="text-xs font-bold bg-rose-950/20 text-[#f43f5e] border border-rose-900/35 px-4 py-2 rounded-xl hover:bg-rose-900/30 transition-all disabled:opacity-40"
+                          className="bg-rose-950/20 border-2 border-rose-900/30 hover:bg-rose-900/40 text-[#f43f5e] font-bold text-[13px] px-6 py-4 rounded-[20px] transition-all disabled:opacity-30 cursor-pointer flex justify-center items-center"
                         >
-                          <Trash2 className="w-3.5 h-3.5 inline mr-1" /> Reset Logs
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
+
+                      {/* MEAL LIST IMPROVEMENTS */}
+                      {dailyScans.length === 0 ? (
+                        <div className="py-12 border-2 border-dashed border-[#2a2a2a] bg-[#141414] rounded-[32px] text-center text-slate-500">
+                          <span className="text-4xl block mb-2 opacity-50">🍽️</span>
+                          <h4 className="font-bold text-slate-400">Aucun repas ce jour</h4>
+                          <p className="text-[11px] mt-1 text-slate-500">Scanne tes repas pour les voir apparaître ici.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-6">
+                          {sortedGroups.map(([groupName, groupData]) => (
+                            <div key={groupName} className="space-y-3">
+                              <h4 className="text-[11px] font-mono font-bold text-slate-500 uppercase tracking-widest pl-2 flex items-center gap-2">
+                                <div className="h-px bg-[#2a2a2a] flex-1"></div>
+                                {groupName}
+                                <div className="h-px bg-[#2a2a2a] flex-1"></div>
+                              </h4>
+                              {groupData.items.map((item) => (
+                                <div key={item.id} className="p-4 bg-[#141414] border border-[#2a2a2a] rounded-[24px] flex flex-col sm:flex-row justify-between gap-4 relative">
+                                  <div className="flex flex-row items-center gap-3 w-full sm:w-auto overflow-hidden">
+                                    <div className="w-12 h-12 bg-black/50 border border-[#2a2a2a] rounded-[14px] flex items-center justify-center shrink-0 overflow-hidden">
+                                      {item.imageUrl ? (
+                                        <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                                      ) : (
+                                        <span className="text-2xl">{item.product_name.toLowerCase().includes("toast") ? "🥑" : "🥫"}</span>
+                                      )}
+                                    </div>
+                                    <div className="min-w-0 pr-4 flex-1">
+                                      <span className="text-[10px] font-mono text-slate-500 uppercase block truncate">{item.brand || item.category}</span>
+                                      <h4 className="text-[14px] font-bold text-white leading-tight truncate mt-0.5">{item.product_name}</h4>
+                                      <span className="text-[10px] font-mono text-[#00FF88] uppercase font-bold tracking-wider mt-1 flex items-center gap-1 opacity-80">
+                                        ⏱️ {item.displayTime}
+                                      </span>
+                                    </div>
+                                    {/* Mobile Only Quick Actions / Stats */}
+                                    <div className="flex sm:hidden flex-col items-end shrink-0 gap-1 absolute top-4 right-4 text-right">
+                                      <span className="text-[13px] font-bold text-white">{item.calories} <span className="text-[9px] text-slate-500 font-mono">kcal</span></span>
+                                      <span className="text-[12px] font-bold text-blue-400">{item.protein} <span className="text-[9px] text-slate-500 font-mono">g</span></span>
+                                    </div>
+                                  </div>
+
+                                  <div className="hidden sm:flex items-center gap-4 shrink-0 sm:justify-end text-right border-t sm:border-t-0 border-[#2a2a2a] pt-3 sm:pt-0 mt-2 sm:mt-0">
+                                    <div>
+                                      <span className="text-[9px] text-slate-500 uppercase font-mono block">Calories</span>
+                                      <span className="text-[13px] font-bold text-white">{item.calories}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-[9px] text-slate-500 uppercase font-mono block">Protéines</span>
+                                      <span className="text-[13px] font-bold text-blue-400">{item.protein}</span>
+                                    </div>
+                                    <div className="hidden md:block">
+                                      <span className="text-[9px] text-slate-500 uppercase font-mono block">Score</span>
+                                      <span className="text-[13px] font-bold text-[#b088f1]">{item.health_score}</span>
+                                    </div>
+                                    <button
+                                      onClick={() => deleteScanItem(item.id || "")}
+                                      className="w-8 h-8 flex items-center justify-center bg-[#1a1a1a] hover:bg-rose-950/50 text-slate-600 hover:text-rose-400 rounded-full transition-colors shrink-0 ml-2 border border-transparent hover:border-rose-900/50"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                  
+                                  {/* Mobile Delete */}
+                                  <button
+                                      onClick={() => deleteScanItem(item.id || "")}
+                                      className="sm:hidden absolute bottom-4 right-4 text-slate-600 p-2"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
                     </div>
+                  );
+              })()}
 
-                    {history.length === 0 ? (
-                      <div className="py-12 text-center text-slate-500 space-y-2">
-                        <span className="text-4xl block">📦</span>
-                        <h4 className="font-bold text-slate-300">No Food Items Scanned Yet</h4>
-                        <p className="text-xs max-w-xs mx-auto text-slate-500">
-                          Complete simulated sandbox trial runs or custom image scanner uploads to populate this daily database feed.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {history.map((item) => (
-                          <div key={item.id} className="p-4 bg-[#191919] border border-slate-800 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-700 transition-all">
-                            <div className="flex items-center gap-3">
-                              <span className="text-2xl">
-                                {item.product_name.toLowerCase().includes("toast") ? "🥑" : "🥫"}
-                              </span>
-                              <div>
-                                <span className="text-[10px] font-mono text-slate-500 uppercase block">{item.brand}</span>
-                                <h4 className="text-sm font-extrabold text-white">{item.product_name}</h4>
-                                <span className="text-[9px] font-mono text-[#00d4aa] uppercase font-bold tracking-wider">{item.category}</span>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-6 justify-between sm:justify-end text-right">
-                              <div>
-                                <span className="text-[10px] text-slate-500 block">Calories</span>
-                                <span className="text-xs font-mono font-bold text-white">{item.calories}</span>
-                              </div>
-                              <div>
-                                <span className="text-[10px] text-slate-500 block">Protein</span>
-                                <span className="text-xs font-mono font-bold text-[#00d4aa]">{item.protein}</span>
-                              </div>
-                              <div>
-                                <span className="text-[10px] text-slate-500 block">Health Score</span>
-                                <span className="text-xs font-mono font-bold text-[#7c3aed]">{item.health_score}</span>
-                              </div>
-                              <button
-                                onClick={() => deleteScanItem(item.id || "")}
-                                className="text-slate-500 hover:text-rose-400 p-1 rounded transition-colors"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                  </div>
-
+              {/* TAB 4: COACH PANEL */}
+              {activeTab === "coach" && (
+                <div className="animate-fade-in">
+                  <CoachPanel history={history} />
                 </div>
               )}
 
-              {/* TAB 4: PROFILE / PREMIUM */}
+              {/* TAB 5: PROFILE / PREMIUM */}
               {activeTab === "profile" && (
                 <div className="space-y-8 animate-fade-in text-center">
                   
@@ -1668,6 +1835,49 @@ export default function App() {
         </div>
       )}
 
+      {showWeeklyReportModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowWeeklyReportModal(false)}></div>
+          <div className="relative w-full max-w-sm bg-[#141414] border-2 border-[#2a2a2a] rounded-[32px] p-6 shadow-2xl animate-fade-in-up">
+            <button onClick={() => setShowWeeklyReportModal(false)} className="absolute top-4 right-4 text-slate-500 hover:text-white bg-[#1a1a1a] p-2 rounded-full transition-colors cursor-pointer">
+              <X className="w-4 h-4" />
+            </button>
+            <div className="text-center space-y-2 mb-6">
+              <div className="w-16 h-16 mx-auto bg-gradient-to-tr from-[#00FF88] to-[#00aa55] text-black rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(0,255,136,0.2)]">
+                <span className="text-3xl">📊</span>
+              </div>
+              <h3 className="text-xl font-bold font-display text-white mt-4">Rapport Hebdomadaire</h3>
+              <p className="text-xs text-slate-400">Analyse de vos 7 derniers jours</p>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] p-4 rounded-2xl flex justify-between items-center">
+                <span className="text-sm font-bold text-slate-300">Calories moyennes</span>
+                <span className="text-sm font-mono font-bold text-[#00FF88]">
+                  {Math.round(history.reduce((sum, item) => sum + (parseFloat(item.calories) || 0), 0) / Math.max(1, new Set(history.map(item => item.scannedAt?.split('T')[0])).size))} <span className="text-[10px] text-slate-500">kcal/j</span>
+                </span>
+              </div>
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] p-4 rounded-2xl flex justify-between items-center">
+                <span className="text-sm font-bold text-slate-300">Protéines moyennes</span>
+                <span className="text-sm font-mono font-bold text-blue-400">
+                  {Math.round(history.reduce((sum, item) => sum + (parseFloat(item.protein) || 0), 0) / Math.max(1, new Set(history.map(item => item.scannedAt?.split('T')[0])).size))} <span className="text-[10px] text-slate-500">g/j</span>
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-6 p-4 bg-[#00FF88]/10 border border-[#00FF88]/20 rounded-2xl text-center">
+              <p className="text-xs text-[#00FF88] font-bold">
+                💡 {history.length > 0 ? "Excellente semaine ! Tu as un bon suivi global de tes macros. Continue sur ce rythme pour atteindre tes objectifs." : "Ton historique est vide pour cette semaine. Commence à scanner tes repas !"}
+              </p>
+            </div>
+            
+            <button onClick={() => setShowWeeklyReportModal(false)} className="w-full bg-[#00FF88] text-black font-bold font-display text-sm py-4 rounded-2xl mt-6 active:scale-95 transition-all cursor-pointer">
+              Fermer le rapport
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* FOOTER BAR */}
       <footer className="border-t border-[#202020] bg-black py-12 mt-20 text-center space-y-6 pb-28 md:pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
@@ -1707,19 +1917,24 @@ export default function App() {
       {viewMode === "dashboard" && (
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0d0d0d]/95 backdrop-blur-md border-t border-[#2a2a2a] z-50 px-6 flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.8)] pb-safe-offset" style={{ paddingBottom: "env(safe-area-inset-bottom, 1rem)", height: "calc(60px + env(safe-area-inset-bottom, 0px))" }}>
           
-          <button onClick={() => { setActiveTab("home"); }} className="flex flex-col items-center justify-center relative active:scale-95 transition-transform" style={{ width: '33%' }}>
+          <button onClick={() => { setActiveTab("home"); }} className="flex flex-col items-center justify-center relative active:scale-95 transition-transform" style={{ width: '25%' }}>
             <div className={`absolute -bottom-[16px] h-[64px] w-[64px] rounded-full flex items-center justify-center border-4 border-[#0d0d0d] shadow-[0_0_20px_rgba(0,255,136,0.2)] ${activeTab === 'home' ? 'bg-[#00FF88]' : 'bg-[#1a1a1a] border-[#2a2a2a]'}`}>
               <span className="text-3xl">📸</span>
             </div>
             <span className={`text-[10px] font-bold mt-[26px] ${activeTab === "home" ? "text-[#00FF88]" : "text-slate-400"}`}>Scanner</span>
           </button>
 
-          <button onClick={() => { setActiveTab("history"); }} className={`flex flex-col items-center justify-center p-2 w-[33%] ${activeTab === "history" ? "text-[#00FF88]" : "text-slate-400"}`}>
+          <button onClick={() => { setActiveTab("history"); }} className={`flex flex-col items-center justify-center p-2 w-[25%] ${activeTab === "history" ? "text-[#00FF88]" : "text-slate-400"}`}>
             <span className="text-[22px] leading-none mb-1">📊</span>
             <span className="text-[10px] font-bold">Historique</span>
           </button>
 
-          <button onClick={() => { setActiveTab("profile"); }} className={`flex flex-col items-center justify-center p-2 w-[33%] ${activeTab === "profile" ? "text-[#00FF88]" : "text-slate-400"}`}>
+          <button onClick={() => { setActiveTab("coach"); }} className={`flex flex-col items-center justify-center p-2 w-[25%] ${activeTab === "coach" ? "text-[#00FF88]" : "text-slate-400"}`}>
+            <span className="text-[22px] leading-none mb-1">🐙</span>
+            <span className="text-[10px] font-bold">Coach</span>
+          </button>
+
+          <button onClick={() => { setActiveTab("profile"); }} className={`flex flex-col items-center justify-center p-2 w-[25%] ${activeTab === "profile" ? "text-[#00FF88]" : "text-slate-400"}`}>
             <span className="text-[22px] leading-none mb-1">👤</span>
             <span className="text-[10px] font-bold">Profil</span>
           </button>

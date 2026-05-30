@@ -1,3 +1,14 @@
+export interface SelfieEntry {
+  id: string;
+  date: string;
+  weight: string;
+  imageUrl: string;
+  message: string;
+  tips: string[];
+  level: string;
+  octopusScore: number;
+}
+
 export interface ScanResult {
   // Original fields
   brand?: string;
