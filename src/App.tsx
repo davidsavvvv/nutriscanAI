@@ -27,8 +27,11 @@ export default function App() {
   const [activeResult, setActiveResult] = useState<ScanResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
-  // App views: 'landing' | 'dashboard'
-  const [viewMode, setViewMode] = useState<"landing" | "dashboard" | "login">("landing");
+  // App views: 'landing' | 'dashboard' | 'login'
+  const [viewMode, setViewMode] = useState<"landing" | "dashboard" | "login">(
+    window.location.pathname === "/scanner" ? "dashboard" : 
+    window.location.pathname === "/login" ? "login" : "landing"
+  );
   
   // Sidebar tab index for dashboard
   const [activeTab, setActiveTab] = useState<"home" | "history" | "upgrade">("home");
@@ -143,7 +146,7 @@ export default function App() {
       // 2. Check session and navigate
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
-          if (window.location.pathname === "/") {
+          if (window.location.pathname === "/" || window.location.pathname === "/login") {
               window.history.replaceState(null, "", "/scanner");
           }
           setViewMode("dashboard");
@@ -162,7 +165,7 @@ export default function App() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        if (window.location.pathname === "/") {
+        if (window.location.pathname === "/" || window.location.pathname === "/login") {
             window.history.replaceState(null, "", "/scanner");
         }
         setViewMode("dashboard");
