@@ -142,9 +142,11 @@ export default function App() {
       if (code) {
         try {
           // Exchange code for session (OAuth flow)
-          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
           if (!exchangeError) {
-             window.location.href = "/scanner";
+             window.history.replaceState(null, "", "/scanner");
+             setViewMode("dashboard");
+             setActiveTab("home");
              return;
           } else {
              console.error("Code exchange failed:", exchangeError.message);
@@ -162,8 +164,10 @@ export default function App() {
           try {
               const { error } = await supabase.auth.verifyOtp({ token_hash, type: type as any });
               if (!error) {
-                  window.location.href = "/scanner";
-                  return;
+                 window.history.replaceState(null, "", "/scanner");
+                 setViewMode("dashboard");
+                 setActiveTab("home");
+                 return;
               } else {
                   console.error("OTP verification failed:", error.message);
                   window.location.href = "/?error=verification_failed";
@@ -174,6 +178,14 @@ export default function App() {
               window.location.href = "/?error=verification_failed";
               return;
           }
+      }
+
+      if (window.location.hash.includes("access_token")) {
+          // If token returned in hash, supbase client usually picks it up. Let's just set the right view
+          window.history.replaceState(null, "", "/scanner");
+          setViewMode("dashboard");
+          setActiveTab("home");
+          return;
       }
 
       // 2. Check session and navigate
