@@ -39,7 +39,14 @@ export default function App() {
   // Onboarding Active Flow state
   const [boardingActive, setBoardingActive] = useState(false);
   const [boardingStep, setBoardingStep] = useState(1);
-  
+  const [authError, setAuthError] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("error") === "verification_failed" ? "Échec de l'authentification ou lien invalide." : null;
+    }
+    return null;
+  });
+
   // User Profile configuration selections
   const [profileGoals, setProfileGoals] = useState<string[]>([]);
   const [profileChallenge, setProfileChallenge] = useState<string>("");
@@ -137,22 +144,29 @@ export default function App() {
                   return;
               } else {
                   console.error("OTP verification failed:", error.message);
+                  window.location.href = "/?error=verification_failed";
+                  return;
               }
           } catch (e) {
               console.error("Auth routing error:", e);
+              window.location.href = "/?error=verification_failed";
+              return;
           }
       }
 
       // 2. Check session and navigate
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
-          if (window.location.pathname === "/" || window.location.pathname === "/login" || window.location.hash.includes("access_token")) {
+          if (window.location.pathname === "/" || window.location.pathname === "/login" || window.location.hash.includes("access_token") || window.location.pathname === "/auth/confirm") {
               window.history.replaceState(null, "", "/scanner");
           }
           setViewMode("dashboard");
           setActiveTab("home");
         } else {
           if (window.location.pathname === "/scanner") {
+              window.location.href = "/";
+          } else if (window.location.pathname === "/auth/confirm" && (!token_hash || !type)) {
+              // Not a valid confirmation link
               window.location.href = "/";
           }
         }
@@ -165,7 +179,7 @@ export default function App() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        if (window.location.pathname === "/" || window.location.pathname === "/login" || window.location.hash.includes("access_token")) {
+        if (window.location.pathname === "/" || window.location.pathname === "/login" || window.location.hash.includes("access_token") || window.location.pathname === "/auth/confirm") {
             window.history.replaceState(null, "", "/scanner");
         }
         setViewMode("dashboard");
@@ -1277,6 +1291,11 @@ export default function App() {
       {/* VIEW 1: SAAS OFF-LOGGED LANDING PAGE */}
       {viewMode === "landing" && (
         <div className="w-full">
+          {authError && (
+            <div className="bg-red-500/20 border border-red-500/50 text-red-200 p-4 text-center text-sm font-bold animate-in fade-in slide-in-from-top-2">
+              {authError}
+            </div>
+          )}
           
           <HeroSection onCtaClick={resetOnboarding} />
 
