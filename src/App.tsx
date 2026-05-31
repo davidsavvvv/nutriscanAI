@@ -132,9 +132,10 @@ export default function App() {
       const type = searchParams.get("type") || hashParams.get("type");
       const errorStr = searchParams.get("error") || hashParams.get("error") || searchParams.get("error_code") || hashParams.get("error_code");
 
+      const errorDesc = searchParams.get("error_description") || hashParams.get("error_description") || "";
       if (errorStr && errorStr !== "verification_failed") {
         window.history.replaceState(null, "", "/");
-        setAuthError("Erreur de connexion, réessaie");
+        setAuthError(`Erreur: ${errorStr} - ${errorDesc}`);
         setViewMode("landing");
         return;
       }
