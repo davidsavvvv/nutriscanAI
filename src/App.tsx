@@ -146,7 +146,7 @@ export default function App() {
       // 2. Check session and navigate
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
-          if (window.location.pathname === "/" || window.location.pathname === "/login") {
+          if (window.location.pathname === "/" || window.location.pathname === "/login" || window.location.hash.includes("access_token")) {
               window.history.replaceState(null, "", "/scanner");
           }
           setViewMode("dashboard");
@@ -165,7 +165,7 @@ export default function App() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        if (window.location.pathname === "/" || window.location.pathname === "/login") {
+        if (window.location.pathname === "/" || window.location.pathname === "/login" || window.location.hash.includes("access_token")) {
             window.history.replaceState(null, "", "/scanner");
         }
         setViewMode("dashboard");
