@@ -192,6 +192,9 @@ export default function App() {
       // 2. Check session and navigate
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
+          if (session.user?.email) {
+            setProfileEmail(session.user.email);
+          }
           if (window.location.pathname === "/" || window.location.pathname === "/login" || window.location.hash.includes("access_token") || window.location.pathname === "/auth/confirm") {
               window.history.replaceState(null, "", "/scanner");
           }
@@ -212,8 +215,18 @@ export default function App() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") {
+          setProfileEmail("");
+          setHistory([]);
+          setProfileGoals([]);
+          localStorage.removeItem("ns_profile_active");
+          localStorage.removeItem("ns_history_v2");
+          setViewMode("landing");
+      } else if (session) {
+        if (session.user?.email) {
+            setProfileEmail(session.user.email);
+        }
         if (window.location.pathname === "/" || window.location.pathname === "/login" || window.location.hash.includes("access_token") || window.location.pathname === "/auth/confirm") {
             window.history.replaceState(null, "", "/scanner");
         }
@@ -1387,10 +1400,10 @@ export default function App() {
               {/* User Identity HUD Card */}
               <div className="p-4 bg-[#1e1e1e] border border-[#2a2a2a] rounded-2xl flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-[#7c3aed] to-[#00d4aa] flex items-center justify-center font-bold text-xs uppercase text-black">
-                  DS
+                  {profileEmail ? profileEmail.substring(0, 2).toUpperCase() : "U"}
                 </div>
                 <div className="min-w-0">
-                  <span className="text-xs font-black text-white block truncate">davidsauvaget69@gmail.com</span>
+                  <span className="text-xs font-black text-white block truncate">{profileEmail || "No Email"}</span>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="inline-flex w-1.5 h-1.5 bg-[#00d4aa] rounded-full" />
                     <span className="text-[10px] font-mono text-[#00d4aa] uppercase font-bold tracking-wider">
@@ -1795,7 +1808,7 @@ export default function App() {
                       </div>
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-slate-400">Connected account:</span>
-                        <span className="text-white font-bold font-mono">davidsauvaget69@gmail.com</span>
+                        <span className="text-white font-bold font-mono">{profileEmail || "No Email"}</span>
                       </div>
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-slate-400">Calculated formula suggestion parameters:</span>
