@@ -31,7 +31,8 @@ export function Login({ onSuccess }: LoginProps) {
           password,
         });
         if (error) throw error;
-        setSuccessMsg("Inscription réussie ! Veuillez vérifier votre e-mail.");
+        setSuccessMsg("Inscription réussie ! Redirection...");
+        window.location.href = "/scanner";
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
