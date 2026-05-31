@@ -58,7 +58,7 @@ export function Login({ onSuccess }: LoginProps) {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: "https://scanmymacros.com",
+          redirectTo: "https://scanmymacros.com/scanner",
         },
       });
       if (error) throw error;
