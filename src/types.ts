@@ -31,6 +31,7 @@ export interface ScanResult {
   scannedAt?: string;
   imageUrl?: string;
   id?: string;
+  isLocked?: boolean;
 
   // New detailed French fields
   nutrition_100g?: {

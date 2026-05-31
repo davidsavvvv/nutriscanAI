@@ -52,6 +52,9 @@ export default function App() {
   const [profileFat, setProfileFat] = useState(0);
   const [profileCarbs, setProfileCarbs] = useState(0);
   const [profileEmail, setProfileEmail] = useState<string>("");
+  const [plan, setPlan] = useState<string>("free");
+  const [freeScansUsed, setFreeScansUsed] = useState<number>(0);
+  const [showPaywall, setShowPaywall] = useState<boolean>(false);
   const [dontKnowTarget, setDontKnowTarget] = useState(false);
   
   // Custom interactive portion modifier state (value between 0.5 and 2.5)
@@ -109,18 +112,61 @@ export default function App() {
 
   // Load cache states on initial client hydration
   useEffect(() => {
-    // Check Supabase Auth session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setViewMode("dashboard");
+    const handleInitialRoute = async () => {
+      // 1. Check for email verification tokens (can be in query string or hash)
+      const queryParams = new URLSearchParams(window.location.search);
+      let token_hash = queryParams.get("token_hash");
+      let type = queryParams.get("type");
+      
+      if (!token_hash && window.location.hash) {
+          const params = new URLSearchParams(window.location.hash.substring(1));
+          if (params.get("token_hash")) {
+              token_hash = params.get("token_hash");
+              type = params.get("type");
+          }
       }
-    });
+
+      if (token_hash && type) {
+          try {
+              const { error } = await supabase.auth.verifyOtp({ token_hash, type: type as any });
+              if (!error) {
+                  window.location.href = "/scanner";
+                  return;
+              } else {
+                  console.error("OTP verification failed:", error.message);
+              }
+          } catch (e) {
+              console.error("Auth routing error:", e);
+          }
+      }
+
+      // 2. Check session and navigate
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          if (window.location.pathname === "/") {
+              window.history.replaceState(null, "", "/scanner");
+          }
+          setViewMode("dashboard");
+          setActiveTab("home");
+        } else {
+          if (window.location.pathname === "/scanner") {
+              window.location.href = "/";
+          }
+        }
+      });
+    };
+    
+    handleInitialRoute();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
+        if (window.location.pathname === "/") {
+            window.history.replaceState(null, "", "/scanner");
+        }
         setViewMode("dashboard");
+        setActiveTab("home");
       }
     });
 
@@ -153,6 +199,11 @@ export default function App() {
         setViewMode("landing"); // fresh start
       }
       
+      const storedPlan = localStorage.getItem("ns_plan");
+      const storedScans = localStorage.getItem("ns_free_scans_used");
+      if (storedPlan) setPlan(storedPlan);
+      if (storedScans) setFreeScansUsed(parseInt(storedScans, 10));
+
       const consent = localStorage.getItem("ns_cookie_consent");
       if (consent === "declined" || consent === "accepted") {
         setCookieConsent(false);
@@ -354,15 +405,33 @@ export default function App() {
 
   const handleScannerTabComplete = (result: ScanResult) => {
     const normalized = normalizeFrenchResultToLegacy(result);
+    // Add blurred flag if limit exceeded
+    const isLocked = plan === "free" && freeScansUsed >= 5;
+    
     const enriched = {
       ...normalized,
       id: `scan-${Date.now()}`,
-      scannedAt: new Date().toISOString()
+      scannedAt: new Date().toISOString(),
+      isLocked
     };
     const updated = [enriched, ...history];
     syncHistory(updated);
     setActiveResult(enriched);
     setPortionSize(1.0);
+    
+    // Update scan usage
+    if (plan === "free") {
+      const newScansUsed = freeScansUsed + 1;
+      setFreeScansUsed(newScansUsed);
+      localStorage.setItem("ns_free_scans_used", newScansUsed.toString());
+      
+      // If exactly 5, show paywall popup after results
+      if (newScansUsed === 5) {
+        setTimeout(() => {
+          setShowPaywall(true);
+        }, 1500);
+      }
+    }
   };
 
   const deleteScanItem = (uid: string) => {
@@ -1336,6 +1405,19 @@ export default function App() {
                       isLoading={isLoading}
                       setIsLoading={setIsLoading}
                     />
+                    
+                    {plan === "free" && (
+                      <div className="mt-4 text-center">
+                        <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-full text-xs font-bold text-slate-300 shadow-sm">
+                          <span className="text-[#00FF88]">📸</span> Scans gratuits restants : <span className="text-white">{Math.max(0, 5 - freeScansUsed)}/5</span>
+                        </span>
+                        {freeScansUsed >= 5 && (
+                          <div className="mt-2 block">
+                            <button onClick={() => setShowPaywall(true)} className="text-[10px] text-[#00FF88] hover:underline underline-offset-2 uppercase tracking-wide font-bold">Débloquer Pro →</button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* ACTIVE SCAN RESULTS VIEW PANEL */}
@@ -1350,6 +1432,8 @@ export default function App() {
                       <ScanResultPanel 
                         result={activeResult} 
                         onClear={() => setActiveResult(null)} 
+                        plan={plan}
+                        onUnlock={() => setShowPaywall(true)}
                       />
                     </div>
                   )}
@@ -1633,7 +1717,7 @@ export default function App() {
               {/* TAB 4: COACH PANEL */}
               {activeTab === "coach" && (
                 <div className="animate-fade-in">
-                  <CoachPanel history={history} />
+                  <CoachPanel history={history} plan={plan} onUnlockExpert={() => setShowPaywall(true)} />
                 </div>
               )}
 
@@ -1938,6 +2022,121 @@ export default function App() {
             <span className="text-[22px] leading-none mb-1">👤</span>
             <span className="text-[10px] font-bold">Profil</span>
           </button>
+        </div>
+      )}
+
+      {/* PAYWALL MODAL */}
+      {showPaywall && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="bg-[#0a0a0a] border border-[#2a2a2a] w-full max-w-xl rounded-[32px] p-6 shadow-2xl relative overflow-hidden animate-in fade-in zoom-in duration-300">
+            {/* Top decorative gradient glow */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-[#00FF88] opacity-10 blur-[80px] pointer-events-none rounded-full"></div>
+            
+            <div className="text-center space-y-4 relative z-10">
+              <div className="mb-4 flex flex-col items-center group">
+                {/* Transform animation container */}
+                <div className="w-24 h-24 sm:w-32 sm:h-32 mb-2 relative flex items-center justify-center text-7xl select-none group-hover:scale-110 transition-transform duration-500 overflow-hidden">
+                   <div className="absolute inset-0 flex items-center justify-center transition-all duration-1000 opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100">
+                     <img src="/octopus-4.png" alt="Octopus Muscular" className="w-full h-full object-contain" onError={(e) => (e.currentTarget.style.display='none')} />
+                     <span className="text-6xl absolute" style={{ display: 'none' }}>💪🐙</span>
+                     <span className="text-6xl" style={{ display: 'none' }}>💪🐙</span>
+                   </div>
+                   <div className="absolute inset-0 flex items-center justify-center transition-all duration-1000 opacity-100 scale-100 group-hover:opacity-0 group-hover:scale-150">
+                     <img src="/octopus-2.png" alt="Octopus Sad" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.display='none'; e.currentTarget.nextElementSibling!.setAttribute('style', 'display:block')} } />
+                     <span className="text-6xl absolute" style={{ display: 'none' }}>🥺🐙</span>
+                   </div>
+                </div>
+                <div className="bg-[#141414] border border-[#2a2a2a] px-5 py-3 rounded-2xl relative inline-block">
+                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-[#141414] border-t border-l border-[#2a2a2a] rotate-45 transform"></div>
+                  <p className="text-sm text-slate-300 italic">
+                    "Hé !<br/>
+                    Tu mérites de tout savoir sur ce que tu manges !<br/>
+                    Débloque ton vrai potentiel 💪"
+                  </p>
+                </div>
+              </div>
+
+              <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-white !mt-6 tracking-tight">
+                C'était ton dernier scan gratuit !
+              </h2>
+              <p className="text-slate-400 text-sm mb-6 pb-4 border-b border-[#2a2a2a]">
+                Débloque tout pour continuer et accéder à l'analyse avancée.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left mt-6">
+                {/* PRO PLAN */}
+                <div className="bg-[#141414] border border-[#2a2a2a] p-5 rounded-3xl hover:border-[#00FF88]/50 transition-colors flex flex-col justify-between group">
+                  <div>
+                     <h3 className="text-white font-bold text-lg mb-1 flex items-center gap-2">PRO <span className="bg-[#1a1a1a] text-slate-400 text-[10px] px-2 py-0.5 rounded-full border border-[#222]">6.99€/m</span></h3>
+                     <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-4 border-b border-[#2a2a2a] pb-3 block">
+                       ☕ Moins qu'un café par semaine
+                     </p>
+                     <ul className="space-y-2 mb-6">
+                       <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> Scans illimités</li>
+                       <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> Analyse complète</li>
+                       <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> Coach poulpe</li>
+                     </ul>
+                  </div>
+                  <button 
+                    onClick={async () => {
+                      try {
+                        const res = await fetch("/api/checkout-session", {
+                          method: "POST", headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ priceId: "price_1TcVGlIcQouyQI6K6uttG2JD", userId: "local-user" })
+                        });
+                        const data = await res.json();
+                        if (data.url) window.location.href = data.url;
+                      } catch (e) {
+                         alert("Erreur Stripe");
+                      }
+                    }}
+                    className="w-full bg-[#1a1a1a] border border-[#222] group-hover:border-[#00FF88]/30 group-hover:bg-[#00FF88]/10 text-[#00FF88] py-2.5 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1">
+                    Essayer Pro gratuit 7 jours <span className="group-hover:translate-x-1 transition-transform">→</span>
+                  </button>
+                </div>
+
+                {/* EXPERT PLAN */}
+                <div className="bg-gradient-to-b from-[#1c1228] to-[#141414] border border-[#a855f7]/30 p-5 rounded-3xl hover:border-[#a855f7]/60 transition-colors flex flex-col justify-between group relative overflow-hidden">
+                  <div className="absolute top-0 right-0 py-1 px-3 bg-[#a855f7]/20 text-[#a855f7] text-[9px] font-bold uppercase tracking-widest rounded-bl-xl border-l border-b border-[#a855f7]/30">Le plus choisi</div>
+                  <div>
+                     <h3 className="text-white font-bold text-lg mb-1 flex items-center gap-2">EXPERT <span className="bg-[#1a1a1a] text-slate-400 text-[10px] px-2 py-0.5 rounded-full border border-[#222]">14.99€/m</span></h3>
+                     <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-4 border-b border-[#2a2a2a] pb-3 block">
+                       🍽️ Moins qu'un repas au restaurant
+                     </p>
+                     <ul className="space-y-2 mb-6">
+                       <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#a855f7]">✓</span> Tout Pro +</li>
+                       <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#a855f7]">✓</span> Suivi photos évolution</li>
+                       <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#a855f7]">✓</span> Plan alimentaire IA</li>
+                     </ul>
+                  </div>
+                  <button 
+                    onClick={async () => {
+                      try {
+                        const res = await fetch("/api/checkout-session", {
+                          method: "POST", headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ priceId: "price_1TcVHFIcQouyQI6KSdytzdTQ", userId: "local-user" })
+                        });
+                        const data = await res.json();
+                        if (data.url) window.location.href = data.url;
+                      } catch (e) {
+                         alert("Erreur Stripe");
+                      }
+                    }}
+                    className="w-full bg-[#a855f7] text-white py-2.5 rounded-xl font-bold text-xs shadow-[0_0_15px_rgba(168,85,247,0.3)] flex items-center justify-center gap-1 active:scale-95 transition-all">
+                    Essayer Expert gratuit 7 jours <span className="group-hover:translate-x-1 transition-transform">→</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-[#2a2a2a] flex flex-col sm:flex-row items-center justify-between gap-4">
+                 <p className="text-[11px] text-slate-500 font-medium">7 jours gratuits • Sans engagement • Annulation en 1 clic</p>
+                 <button onClick={() => setShowPaywall(false)} className="text-xs text-slate-400 hover:text-white transition-colors underline underline-offset-2">
+                   Continuer avec accès limité →
+                 </button>
+              </div>
+
+            </div>
+          </div>
         </div>
       )}
 

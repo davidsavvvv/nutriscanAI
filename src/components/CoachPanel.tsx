@@ -8,9 +8,11 @@ const MAX_IMG_DIMENSION = 600;
 
 interface CoachPanelProps {
   history: ScanResult[];
+  plan?: string;
+  onUnlockExpert?: () => void;
 }
 
-export default function CoachPanel({ history }: CoachPanelProps) {
+export default function CoachPanel({ history, plan = "free", onUnlockExpert }: CoachPanelProps) {
   const [profile, setProfile] = useState<any>(null);
   const [imc, setImc] = useState<number>(0);
   const [dailyCalories, setDailyCalories] = useState<number>(2000);
@@ -386,10 +388,25 @@ export default function CoachPanel({ history }: CoachPanelProps) {
       </div>
 
       {/* SELFIE SECTION */}
-      <div className="space-y-6 pt-10 border-t border-[#2a2a2a] mt-8">
-        <h3 className="text-xl font-bold font-display text-white border-b border-[#2a2a2a] pb-3">📸 Mon évolution</h3>
+      <div className="space-y-6 pt-10 border-t border-[#2a2a2a] mt-8 relative">
+        {plan !== "expert" && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/60 backdrop-blur-md rounded-[32px] p-6 text-center border border-[#a855f7]/30">
+            <div className="w-16 h-16 bg-[#1a1a1a] rounded-full flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(168,85,247,0.3)]">
+              <span className="text-3xl">🔒</span>
+            </div>
+            <h3 className="text-xl font-bold font-display text-white mb-2">Fonctionnalité Expert</h3>
+            <p className="text-sm text-slate-400 mb-6 max-w-sm">
+              Upgrade vers Expert pour débloquer le suivi photo par l'IA et l'évolution visuelle.
+            </p>
+            <button onClick={onUnlockExpert} className="bg-[#a855f7] py-3 px-8 text-white rounded-2xl font-bold active:scale-95 transition-all flex items-center gap-2">
+              Passer à Expert 14.99€/mois →
+            </button>
+          </div>
+        )}
+        <div className={plan !== "expert" ? "opacity-30 pointer-events-none blur-[4px] select-none space-y-6" : "space-y-6"}>
+          <h3 className="text-xl font-bold font-display text-white border-b border-[#2a2a2a] pb-3">📸 Mon évolution</h3>
 
-        {/* PROPOSE SELFIE / WEEKLY CHECK-IN */}
+          {/* PROPOSE SELFIE / WEEKLY CHECK-IN */}
         <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-[#2a2a2a] p-6 rounded-[32px] text-center shadow-lg relative overflow-hidden">
           {/* Notification badge on top corner */}
           <div className="absolute top-4 right-4 flex h-3 w-3">
@@ -550,6 +567,7 @@ export default function CoachPanel({ history }: CoachPanelProps) {
           </div>
         )}
 
+      </div>
       </div>
 
     </div>

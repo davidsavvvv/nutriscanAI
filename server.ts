@@ -3,8 +3,21 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
+import Stripe from "stripe";
 
 dotenv.config();
+
+let stripeClient: Stripe | null = null;
+function getStripe(): Stripe {
+  if (!stripeClient) {
+    const key = process.env.STRIPE_SECRET_KEY;
+    if (!key) {
+      throw new Error("STRIPE_SECRET_KEY environment variable is missing.");
+    }
+    stripeClient = new Stripe(key);
+  }
+  return stripeClient;
+}
 
 async function startServer() {
   const app = express();
@@ -13,6 +26,36 @@ async function startServer() {
   // Set limits for larger visual payload uploads
   app.use(express.json({ limit: "20mb" }));
   app.use(express.urlencoded({ limit: "20mb", extended: true }));
+
+  app.post("/api/checkout-session", async (req, res) => {
+    try {
+      const { priceId, userId } = req.body;
+      const stripe = getStripe();
+      
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+        mode: "subscription",
+        success_url: req.headers.referer ? new URL("/scanner", req.headers.referer).toString() : "https://scanmymacros.com/scanner",
+        cancel_url: req.headers.referer ? new URL("/#pricing", req.headers.referer).toString() : "https://scanmymacros.com/pricing",
+        client_reference_id: userId,
+        subscription_data: {
+          trial_period_days: 7,
+        },
+        payment_method_collection: "if_required",
+      });
+
+      return res.json({ url: session.url });
+    } catch (err: any) {
+      console.error("Stripe Error:", err);
+      return res.status(500).json({ error: err.message });
+    }
+  });
 
   // Initialize GoogleGenAI client lazily or safely
   let ai: GoogleGenAI | null = null;

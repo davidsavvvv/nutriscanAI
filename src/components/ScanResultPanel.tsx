@@ -5,9 +5,11 @@ import { ShieldAlert, TrendingUp, Sparkles, RefreshCw, Layers, Zap, Info, CheckC
 interface ScanResultPanelProps {
   result: ScanResult;
   onClear: () => void;
+  plan?: string;
+  onUnlock?: () => void;
 }
 
-export default function ScanResultPanel({ result, onClear }: ScanResultPanelProps) {
+export default function ScanResultPanel({ result, onClear, plan = "free", onUnlock }: ScanResultPanelProps) {
   // Extract numerical scores from representations like "8/10" or "8"
   const getScoreNumber = (scoreStr?: string) => {
     if (!scoreStr) return 5;
@@ -220,96 +222,116 @@ export default function ScanResultPanel({ result, onClear }: ScanResultPanelProp
                 </div>
               </div>
 
-              {/* Composition detail */}
-              <div className="bg-white border border-slate-200 rounded-[28px] p-6 space-y-2">
-                <h3 className="text-slate-800 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 font-display mb-3">
-                  <Layers className="w-4 h-4 text-slate-500" /> Composition Détaillée & Additifs
-                </h3>
-                <p className="text-sm text-slate-600 leading-relaxed font-medium">
-                  {result.composition}
-                </p>
-              </div>
+              {/* Composition detail locked overlay wrapper */}
+              <div className="relative mt-6">
+                {result.isLocked && (
+                  <div className="absolute inset-0 bg-slate-50/70 backdrop-blur-md z-10 flex flex-col items-center justify-center rounded-[28px] border border-slate-200 p-6 text-center">
+                    <div className="w-16 h-16 bg-white border-2 border-slate-200 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                      <span className="text-3xl">🔒</span>
+                    </div>
+                    <h3 className="text-xl font-bold font-display text-slate-900 mb-2">Fonctionnalité Pro</h3>
+                    <p className="text-sm text-slate-600 mb-6 max-w-sm">
+                      Débloque l'analyse complète (additifs, vitamines, alertes, avis de l'IA).
+                    </p>
+                    <button onClick={onUnlock} className="bg-[#00FF88] text-black font-extrabold text-sm py-3 px-8 rounded-2xl shadow hover:opacity-90 active:scale-95 transition-all">
+                      Essayer Pro 7 jours gratuits →
+                    </button>
+                  </div>
+                )}
+                
+                <div className={result.isLocked ? "opacity-30 pointer-events-none blur-[4px] transition-all space-y-4" : "space-y-4"}>
+                  {/* Composition detail */}
+                  <div className="bg-white border border-slate-200 rounded-[28px] p-6 space-y-2">
+                    <h3 className="text-slate-800 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 font-display mb-3">
+                      <Layers className="w-4 h-4 text-slate-500" /> Composition Détaillée & Additifs
+                    </h3>
+                    <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                      {result.composition}
+                    </p>
+                  </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Benefits */}
-                <div className="bg-emerald-50/50 border border-emerald-100 rounded-[24px] p-6">
-                   <h3 className="text-emerald-800 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
-                     <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Bienfaits
-                   </h3>
-                   <ul className="space-y-3">
-                     {(result.benefits || []).map((b, i) => (
-                        <li key={i} className="text-sm text-emerald-900 leading-relaxed font-medium flex items-start gap-2">
-                          <span className="text-emerald-500 shrink-0">✓</span> {b}
-                        </li>
-                     ))}
-                   </ul>
-                </div>
-                {/* Alerts */}
-                <div className="bg-rose-50/50 border border-rose-100 rounded-[24px] p-6">
-                   <h3 className="text-rose-800 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
-                     <AlertTriangle className="w-4 h-4 text-rose-500" /> Points de Vigilance
-                   </h3>
-                   <ul className="space-y-3">
-                     {(result.alerts || []).map((a, i) => (
-                        <li key={i} className="text-sm text-rose-900 leading-relaxed font-medium flex items-start gap-2">
-                          <span className="text-rose-500 shrink-0">⚠️</span> {a}
-                        </li>
-                     ))}
-                   </ul>
-                </div>
-              </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Benefits */}
+                    <div className="bg-emerald-50/50 border border-emerald-100 rounded-[24px] p-6">
+                       <h3 className="text-emerald-800 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
+                         <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Bienfaits
+                       </h3>
+                       <ul className="space-y-3">
+                         {(result.benefits || []).map((b, i) => (
+                            <li key={i} className="text-sm text-emerald-900 leading-relaxed font-medium flex items-start gap-2">
+                              <span className="text-emerald-500 shrink-0">✓</span> {b}
+                            </li>
+                         ))}
+                       </ul>
+                    </div>
+                    {/* Alerts */}
+                    <div className="bg-rose-50/50 border border-rose-100 rounded-[24px] p-6">
+                       <h3 className="text-rose-800 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
+                         <AlertTriangle className="w-4 h-4 text-rose-500" /> Points de Vigilance
+                       </h3>
+                       <ul className="space-y-3">
+                         {(result.alerts || []).map((a, i) => (
+                            <li key={i} className="text-sm text-rose-900 leading-relaxed font-medium flex items-start gap-2">
+                              <span className="text-rose-500 shrink-0">⚠️</span> {a}
+                            </li>
+                         ))}
+                       </ul>
+                    </div>
+                  </div>
 
-              {/* Vitamins & Objectives */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white border border-slate-200 rounded-[24px] p-6">
-                   <h3 className="text-slate-800 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
-                     <Sparkles className="w-4 h-4 text-amber-500" /> Vitamines & Minéraux
-                   </h3>
-                   <ul className="space-y-3">
-                     {(result.vitamins_minerals || []).map((v, i) => (
-                        <li key={i} className="text-sm text-slate-700 font-medium flex items-start gap-2">
-                           <span className="text-amber-500 shrink-0">✦</span> {v}
-                        </li>
-                     ))}
-                   </ul>
-                </div>
-                <div className="bg-white border border-slate-200 rounded-[24px] p-6">
-                   <h3 className="text-slate-800 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
-                     <TrendingUp className="w-4 h-4 text-blue-500" /> Orientations
-                   </h3>
-                   <div className="space-y-3">
-                     <div className="flex justify-between text-sm border-b border-slate-100 pb-2">
-                        <span className="text-slate-500 font-medium">Perte de poids</span>
-                        <span className="text-slate-800">{result.objectives?.weight_loss}</span>
-                     </div>
-                     <div className="flex justify-between text-sm border-b border-slate-100 pb-2">
-                        <span className="text-slate-500 font-medium">Prise de muscle</span>
-                        <span className="text-slate-800">{result.objectives?.muscle_gain}</span>
-                     </div>
-                     <div className="flex justify-between text-sm border-b border-slate-100 pb-2">
-                        <span className="text-slate-500 font-medium">Santé générale</span>
-                        <span className="text-slate-800">{result.objectives?.general_health}</span>
-                     </div>
-                     <div className="flex justify-between text-sm">
-                        <span className="text-slate-500 font-medium">Sport / Enfants</span>
-                        <span className="text-slate-800">{result.objectives?.sport} / {result.objectives?.kids}</span>
-                     </div>
-                   </div>
-                </div>
-              </div>
+                  {/* Vitamins & Objectives */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white border border-slate-200 rounded-[24px] p-6">
+                       <h3 className="text-slate-800 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
+                         <Sparkles className="w-4 h-4 text-amber-500" /> Vitamines & Minéraux
+                       </h3>
+                       <ul className="space-y-3">
+                         {(result.vitamins_minerals || []).map((v, i) => (
+                            <li key={i} className="text-sm text-slate-700 font-medium flex items-start gap-2">
+                               <span className="text-amber-500 shrink-0">✦</span> {v}
+                            </li>
+                         ))}
+                       </ul>
+                    </div>
+                    <div className="bg-white border border-slate-200 rounded-[24px] p-6">
+                       <h3 className="text-slate-800 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
+                         <TrendingUp className="w-4 h-4 text-blue-500" /> Orientations
+                       </h3>
+                       <div className="space-y-3">
+                         <div className="flex justify-between text-sm border-b border-slate-100 pb-2">
+                            <span className="text-slate-500 font-medium">Perte de poids</span>
+                            <span className="text-slate-800">{result.objectives?.weight_loss}</span>
+                         </div>
+                         <div className="flex justify-between text-sm border-b border-slate-100 pb-2">
+                            <span className="text-slate-500 font-medium">Prise de muscle</span>
+                            <span className="text-slate-800">{result.objectives?.muscle_gain}</span>
+                         </div>
+                         <div className="flex justify-between text-sm border-b border-slate-100 pb-2">
+                            <span className="text-slate-500 font-medium">Santé générale</span>
+                            <span className="text-slate-800">{result.objectives?.general_health}</span>
+                         </div>
+                         <div className="flex justify-between text-sm">
+                            <span className="text-slate-500 font-medium">Sport / Enfants</span>
+                            <span className="text-slate-800">{result.objectives?.sport} / {result.objectives?.kids}</span>
+                         </div>
+                       </div>
+                    </div>
+                  </div>
 
-              {/* Custom Advice Box */}
-              <div className="bg-slate-900 border border-slate-800 rounded-[28px] p-6 flex flex-col sm:flex-row gap-5 text-white">
-                <div className="p-3 bg-slate-800 rounded-2xl h-12 w-12 shrink-0 flex items-center justify-center border border-slate-700">
-                  <Info className="text-emerald-400 w-6 h-6" />
-                </div>
-                <div>
-                  <h4 className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1.5">
-                    Le Mot du Coach
-                  </h4>
-                  <p className="text-base text-white font-medium leading-relaxed">
-                    "{result.custom_advice}"
-                  </p>
+                  {/* Custom Advice Box */}
+                  <div className="bg-slate-900 border border-slate-800 rounded-[28px] p-6 flex flex-col sm:flex-row gap-5 text-white">
+                    <div className="p-3 bg-slate-800 rounded-2xl h-12 w-12 shrink-0 flex items-center justify-center border border-slate-700">
+                      <Info className="text-emerald-400 w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1.5">
+                        Le Mot du Coach
+                      </h4>
+                      <p className="text-base text-white font-medium leading-relaxed">
+                        "{result.custom_advice}"
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </>
@@ -411,58 +433,78 @@ export default function ScanResultPanel({ result, onClear }: ScanResultPanelProp
             </div>
           </div>
 
-          {/* Sweeteners and Artificial Additives */}
-          <div className="bg-white border border-slate-200 p-6 rounded-[28px]">
-            <h3 className="text-slate-800 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-1.5 font-display">
-              <ShieldAlert className="w-4 h-4 text-slate-500" strokeWidth={2.5} /> Sweeteners & Sweetening Agents
-            </h3>
-            {result.sweeteners && result.sweeteners.length > 0 && result.sweeteners[0] !== "None" ? (
-              <div className="flex flex-wrap gap-2">
-                {result.sweeteners.map((sw, idx) => (
-                  <span 
-                    key={idx}
-                    className="px-3 py-1.5 bg-slate-100/80 border border-slate-200 text-slate-600 font-mono text-[10px] rounded-lg font-medium shadow-sm hover:border-slate-300 transition-colors"
-                  >
-                    🚫 {sw}
-                  </span>
-                ))}
+          {/* Locked wrapper for detailed English UI */}
+          <div className="relative mt-6 space-y-4">
+            {result.isLocked && (
+              <div className="absolute inset-0 bg-slate-50/70 backdrop-blur-md z-10 flex flex-col items-center justify-center rounded-[28px] border border-slate-200 p-6 text-center">
+                <div className="w-16 h-16 bg-white border-2 border-slate-200 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                  <span className="text-3xl">🔒</span>
+                </div>
+                <h3 className="text-xl font-bold font-display text-slate-900 mb-2">Fonctionnalité Pro</h3>
+                <p className="text-sm text-slate-600 mb-6 max-w-sm">
+                  Débloque l'analyse détaillée des édulcorants et les recommandations IA.
+                </p>
+                <button onClick={onUnlock} className="bg-[#00FF88] text-black font-extrabold text-sm py-3 px-8 rounded-2xl shadow hover:opacity-90 active:scale-95 transition-all">
+                  Essayer Pro 7 jours gratuits →
+                </button>
               </div>
-            ) : (
-              <p className="text-xs text-green-700 bg-green-50/55 border border-green-100 rounded-lg p-3 font-semibold">
-                ✅ No synthetic sweeteners identified in processed compounds.
-              </p>
             )}
-            <p className="text-[10px] text-slate-400 mt-3 font-mono">
-              *Synthetics bypass gastric breakdown but can trigger gut microbiota disruptions and maintain high sweet cravings.
-            </p>
-          </div>
-
-          {/* AI Narrative Commentary */}
-          <div className="bg-slate-50/80 border border-slate-200/60 rounded-[28px] p-6 flex gap-4">
-            <div className="p-2.5 bg-slate-200/60 rounded-xl h-10 w-10 shrink-0 flex items-center justify-center border border-slate-200/60">
-              <Zap className="text-slate-800 w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-slate-900 text-xs font-extrabold uppercase font-display tracking-wider">
-                Nutriscan Coach Insight
-              </h4>
-              <p className="text-xs text-slate-600 mt-2 leading-relaxed font-sans">
-                {result.summary}
-              </p>
-            </div>
-          </div>
-
-          {/* Better Cleaner Alternative (Light Green Style) */}
-          <div className="p-6 bg-green-50 rounded-[28px] border border-green-100 flex flex-col sm:flex-row sm:items-center justify-between gap-5 transition-all hover:bg-green-100/20">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-green-500/90 rounded-full flex items-center justify-center text-white shrink-0 mt-0.5">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5L20 7"/></svg>
+            
+            <div className={result.isLocked ? "opacity-30 pointer-events-none blur-[4px] transition-all space-y-4" : "space-y-4"}>
+              {/* Sweeteners and Artificial Additives */}
+              <div className="bg-white border border-slate-200 p-6 rounded-[28px]">
+                <h3 className="text-slate-800 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-1.5 font-display">
+                  <ShieldAlert className="w-4 h-4 text-slate-500" strokeWidth={2.5} /> Sweeteners & Sweetening Agents
+                </h3>
+                {result.sweeteners && result.sweeteners.length > 0 && result.sweeteners[0] !== "None" ? (
+                  <div className="flex flex-wrap gap-2">
+                    {result.sweeteners.map((sw, idx) => (
+                      <span 
+                        key={idx}
+                        className="px-3 py-1.5 bg-slate-100/80 border border-slate-200 text-slate-600 font-mono text-[10px] rounded-lg font-medium shadow-sm hover:border-slate-300 transition-colors"
+                      >
+                        🚫 {sw}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-green-700 bg-green-50/55 border border-green-100 rounded-lg p-3 font-semibold">
+                    ✅ No synthetic sweeteners identified in processed compounds.
+                  </p>
+                )}
+                <p className="text-[10px] text-slate-400 mt-3 font-mono">
+                  *Synthetics bypass gastric breakdown but can trigger gut microbiota disruptions and maintain high sweet cravings.
+                </p>
               </div>
-              <div>
-                <div className="text-[10px] font-bold text-green-800 uppercase tracking-widest font-mono">Better Cleaner Alternative</div>
-                <div className="text-base font-bold text-green-950 mt-1">{result.better_alternative}</div>
-                <div className="text-xs text-green-700 mt-1 leading-relaxed">
-                  Optimize cellular ATP production and performance by selecting this natural, unburdened swap recommendation.
+
+              {/* AI Narrative Commentary */}
+              <div className="bg-slate-50/80 border border-slate-200/60 rounded-[28px] p-6 flex gap-4">
+                <div className="p-2.5 bg-slate-200/60 rounded-xl h-10 w-10 shrink-0 flex items-center justify-center border border-slate-200/60">
+                  <Zap className="text-slate-800 w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-slate-900 text-xs font-extrabold uppercase font-display tracking-wider">
+                    Nutriscan Coach Insight
+                  </h4>
+                  <p className="text-xs text-slate-600 mt-2 leading-relaxed font-sans">
+                    {result.summary}
+                  </p>
+                </div>
+              </div>
+
+              {/* Better Cleaner Alternative (Light Green Style) */}
+              <div className="p-6 bg-green-50 rounded-[28px] border border-green-100 flex flex-col sm:flex-row sm:items-center justify-between gap-5 transition-all hover:bg-green-100/20">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-green-500/90 rounded-full flex items-center justify-center text-white shrink-0 mt-0.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5L20 7"/></svg>
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold text-green-800 uppercase tracking-widest font-mono">Better Cleaner Alternative</div>
+                    <div className="text-base font-bold text-green-950 mt-1">{result.better_alternative}</div>
+                    <div className="text-xs text-green-700 mt-1 leading-relaxed">
+                      Optimize cellular ATP production and performance by selecting this natural, unburdened swap recommendation.
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
