@@ -1,21 +1,26 @@
 /// <reference types="vite/client" />
 import { createClient } from "@supabase/supabase-js";
 
-let supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://qwylrnzeskackrbcnguv.supabase.co";
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "placeholder-anon-key";
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 
-try {
-  new URL(supabaseUrl);
-} catch (e) {
-  console.warn(`Invalid VITE_SUPABASE_URL provided: ${supabaseUrl}. Falling back to placeholder.`);
-  supabaseUrl = "https://qwylrnzeskackrbcnguv.supabase.co";
-}
+const isValidUrl = (url: string) => {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
 
-if (!import.meta.env.VITE_SUPABASE_URL || (!import.meta.env.VITE_SUPABASE_ANON_KEY && !import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY)) {
-  console.warn("Supabase credentials not found. Please set VITE_SUPABASE_URL and either VITE_SUPABASE_ANON_KEY or VITE_SUPABASE_PUBLISHABLE_KEY.");
+if (!isValidUrl(supabaseUrl)) {
+  console.warn(
+    "Invalid or missing VITE_SUPABASE_URL. Please verify your environment variables. Received:", 
+    supabaseUrl
+  );
 }
 
 export const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey
+  isValidUrl(supabaseUrl) ? supabaseUrl : "https://placeholder.supabase.co",
+  supabaseAnonKey || "placeholder-anon-key"
 );
