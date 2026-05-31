@@ -123,17 +123,39 @@ export default function App() {
   // Load cache states on initial client hydration
   useEffect(() => {
     const handleInitialRoute = async () => {
-      // 1. Check for email verification tokens (can be in query string or hash)
-      const queryParams = new URLSearchParams(window.location.search);
-      let token_hash = queryParams.get("token_hash");
-      let type = queryParams.get("type");
+      // 1. Check for email verification, oauth code, and errors
+      const searchParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
       
-      if (!token_hash && window.location.hash) {
-          const params = new URLSearchParams(window.location.hash.substring(1));
-          if (params.get("token_hash")) {
-              token_hash = params.get("token_hash");
-              type = params.get("type");
+      const code = searchParams.get("code") || hashParams.get("code");
+      const token_hash = searchParams.get("token_hash") || hashParams.get("token_hash");
+      const type = searchParams.get("type") || hashParams.get("type");
+      const errorStr = searchParams.get("error") || hashParams.get("error") || searchParams.get("error_code") || hashParams.get("error_code");
+
+      if (errorStr && errorStr !== "verification_failed") {
+        window.history.replaceState(null, "", "/");
+        setAuthError("Erreur de connexion, réessaie");
+        setViewMode("landing");
+        return;
+      }
+
+      if (code) {
+        try {
+          // Exchange code for session (OAuth flow)
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          if (!exchangeError) {
+             window.location.href = "/scanner";
+             return;
+          } else {
+             console.error("Code exchange failed:", exchangeError.message);
+             window.location.href = "/?error=verification_failed";
+             return;
           }
+        } catch (e) {
+          console.error("Code exchange error:", e);
+          window.location.href = "/?error=verification_failed";
+          return;
+        }
       }
 
       if (token_hash && type) {
@@ -165,7 +187,7 @@ export default function App() {
         } else {
           if (window.location.pathname === "/scanner") {
               window.location.href = "/";
-          } else if (window.location.pathname === "/auth/confirm" && (!token_hash || !type)) {
+          } else if (window.location.pathname === "/auth/confirm") {
               // Not a valid confirmation link
               window.location.href = "/";
           }
