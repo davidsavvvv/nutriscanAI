@@ -123,27 +123,27 @@ export default function App() {
   // Load cache states on initial client hydration
   useEffect(() => {
     const handleInitialRoute = async () => {
-      // 1. Check for email verification, oauth code, and errors
-      const searchParams = new URLSearchParams(window.location.search);
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      
+      const href = window.location.href;
+      const url = new URL(href);
+      const searchParams = url.searchParams;
+      const hashParams = new URLSearchParams(url.hash.substring(1));
+
       const code = searchParams.get("code") || hashParams.get("code");
       const token_hash = searchParams.get("token_hash") || hashParams.get("token_hash");
-      const type = searchParams.get("type") || hashParams.get("type");
-      const errorStr = searchParams.get("error") || hashParams.get("error") || searchParams.get("error_code") || hashParams.get("error_code");
+      const type = searchParams.get("type") || hashParams.get("type") || "signup";
+      
+      const hasError = href.includes("error=") || href.includes("error_code=");
 
-      const errorDesc = searchParams.get("error_description") || hashParams.get("error_description") || "";
-      if (errorStr && errorStr !== "verification_failed") {
+      if (hasError) {
         window.history.replaceState(null, "", "/");
-        setAuthError(`Erreur: ${errorStr} - ${errorDesc}`);
+        setAuthError("Erreur de connexion, réessaie");
         setViewMode("landing");
         return;
       }
 
       if (code) {
         try {
-          // Exchange code for session (OAuth flow)
-          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
           if (!exchangeError) {
              window.history.replaceState(null, "", "/scanner");
              setViewMode("dashboard");
@@ -151,38 +151,73 @@ export default function App() {
              return;
           } else {
              console.error("Code exchange failed:", exchangeError.message);
-             window.location.href = "/?error=verification_failed";
+             window.history.replaceState(null, "", "/");
+             setAuthError("Erreur de connexion, réessaie");
+             setViewMode("landing");
              return;
           }
         } catch (e) {
           console.error("Code exchange error:", e);
-          window.location.href = "/?error=verification_failed";
+          window.history.replaceState(null, "", "/");
+          setAuthError("Erreur de connexion, réessaie");
+          setViewMode("landing");
           return;
         }
       }
 
-      if (token_hash && type) {
-          try {
-              const { error } = await supabase.auth.verifyOtp({ token_hash, type: type as any });
-              if (!error) {
-                 window.history.replaceState(null, "", "/scanner");
-                 setViewMode("dashboard");
-                 setActiveTab("home");
-                 return;
-              } else {
-                  console.error("OTP verification failed:", error.message);
-                  window.location.href = "/?error=verification_failed";
-                  return;
-              }
-          } catch (e) {
-              console.error("Auth routing error:", e);
-              window.location.href = "/?error=verification_failed";
-              return;
+      if (token_hash) {
+        try {
+          const { error } = await supabase.auth.verifyOtp({ token_hash, type: type as any });
+          if (!error) {
+             window.history.replaceState(null, "", "/scanner");
+             setViewMode("dashboard");
+             setActiveTab("home");
+             return;
+          } else {
+             console.error("OTP verification failed:", error.message);
+             window.history.replaceState(null, "", "/");
+             setAuthError("Erreur de connexion, réessaie");
+             setViewMode("landing");
+             return;
           }
+        } catch (e) {
+          console.error("OTP verification error:", e);
+          window.history.replaceState(null, "", "/");
+          setAuthError("Erreur de connexion, réessaie");
+          setViewMode("landing");
+          return;
+        }
+      }
+
+      if (window.location.pathname === "/auth/confirm") {
+        const confirmCode = searchParams.get("code") || hashParams.get("code");
+        const confirmTokenHash = searchParams.get("token_hash") || hashParams.get("token_hash");
+        const confirmType = searchParams.get("type") || hashParams.get("type") || "signup";
+
+        if (confirmCode) {
+          const { error } = await supabase.auth.exchangeCodeForSession(confirmCode);
+          if (!error) {
+             window.history.replaceState(null, "", "/scanner");
+             setViewMode("dashboard");
+             setActiveTab("home");
+             return;
+          }
+        } else if (confirmTokenHash) {
+          const { error } = await supabase.auth.verifyOtp({ token_hash: confirmTokenHash, type: confirmType as any });
+          if (!error) {
+             window.history.replaceState(null, "", "/scanner");
+             setViewMode("dashboard");
+             setActiveTab("home");
+             return;
+          }
+        }
+        window.history.replaceState(null, "", "/");
+        setAuthError("Erreur de connexion, réessaie");
+        setViewMode("landing");
+        return;
       }
 
       if (window.location.hash.includes("access_token")) {
-          // If token returned in hash, supbase client usually picks it up. Let's just set the right view
           window.history.replaceState(null, "", "/scanner");
           setViewMode("dashboard");
           setActiveTab("home");
@@ -204,13 +239,12 @@ export default function App() {
           if (window.location.pathname === "/scanner") {
               window.location.href = "/";
           } else if (window.location.pathname === "/auth/confirm") {
-              // Not a valid confirmation link
               window.location.href = "/";
           }
         }
       });
     };
-    
+
     handleInitialRoute();
 
     const {
