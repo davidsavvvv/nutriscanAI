@@ -24,15 +24,27 @@ async function startServer() {
   const PORT = 3000;
 
   // Set limits for larger visual payload uploads
-  app.use(express.json({ limit: "20mb" }));
-  app.use(express.urlencoded({ limit: "20mb", extended: true }));
+  app.use((req, res, next) => {
+    if (req.originalUrl === "/api/webhook") {
+      next();
+    } else {
+      express.json({ limit: "20mb" })(req, res, next);
+    }
+  });
+  app.use((req, res, next) => {
+    if (req.originalUrl === "/api/webhook") {
+      next();
+    } else {
+      express.urlencoded({ limit: "20mb", extended: true })(req, res, next);
+    }
+  });
 
   app.post("/api/checkout-session", async (req, res) => {
     try {
-      const { priceId, userId } = req.body;
+      const { priceId, userId, customer_email } = req.body;
       const stripe = getStripe();
       
-      const session = await stripe.checkout.sessions.create({
+      const payload: any = {
         payment_method_types: ["card"],
         line_items: [
           {
@@ -41,20 +53,116 @@ async function startServer() {
           },
         ],
         mode: "subscription",
-        success_url: req.headers.referer ? new URL("/scanner", req.headers.referer).toString() : "https://scanmymacros.com/scanner",
+        success_url: req.headers.referer ? new URL("/scanner?welcome=true", req.headers.referer).toString() : "https://scanmymacros.com/scanner?welcome=true",
         cancel_url: req.headers.referer ? new URL("/#pricing", req.headers.referer).toString() : "https://scanmymacros.com/pricing",
         client_reference_id: userId,
         subscription_data: {
           trial_period_days: 7,
         },
         payment_method_collection: "if_required",
-      });
+      };
+      
+      if (customer_email) {
+        payload.customer_email = customer_email;
+      }
+      
+      const session = await stripe.checkout.sessions.create(payload);
 
       return res.json({ url: session.url });
     } catch (err: any) {
       console.error("Stripe Error:", err);
       return res.status(500).json({ error: err.message });
     }
+  });
+
+  // Stripe Webhook Endpoint
+  app.post("/api/webhook", express.raw({ type: "application/json" }), async (req, res) => {
+    const signature = req.headers["stripe-signature"] as string;
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    
+    if (!webhookSecret) {
+      console.warn("No STRIPE_WEBHOOK_SECRET found, ignoring webhook");
+      return res.status(400).send("Webhook secret missing");
+    }
+
+    let event: Stripe.Event;
+    try {
+      event = getStripe().webhooks.constructEvent(
+        req.body,
+        signature,
+        webhookSecret
+      );
+    } catch (err: any) {
+      console.error("Webhook signature verification failed.", err.message);
+      return res.status(400).send("Webhook Error: " + err.message);
+    }
+
+    try {
+      const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+      if (!supabaseUrl || !supabaseServiceKey) {
+          console.error("Supabase config missing for webhook processing");
+          return res.status(500).send("Supabase config missing");
+      }
+
+      // Initialize Supabase admin client inside the handler
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+          auth: {
+              persistSession: false,
+              autoRefreshToken: false,
+              detectSessionInUrl: false
+          }
+      });
+
+      if (event.type === "checkout.session.completed") {
+        const session = event.data.object as Stripe.Checkout.Session;
+        
+        // This is the user ID passed when creating the checkout session
+        const userId = session.client_reference_id;
+        const subscriptionId = session.subscription as string;
+        
+        if (userId && subscriptionId) {
+            // Fetch subscription from stripe to get the price
+            const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
+            const priceId = subscription.items.data[0].price.id;
+            
+            let plan = "free";
+            if (priceId === "price_1TcVGlIcQouyQI6K6uttG2JD") plan = "pro";
+            if (priceId === "price_1TcVHFIcQouyQI6KSdytzdTQ") plan = "expert";
+            
+            await supabaseAdmin
+                .from("subscriptions")
+                .upsert({
+                    user_id: userId,
+                    stripe_customer_id: session.customer as string,
+                    stripe_subscription_id: subscriptionId,
+                    plan: plan,
+                    status: subscription.status,
+                });
+        }
+      } else if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
+        const subscription = event.data.object as Stripe.Subscription;
+        
+        const priceId = subscription.items.data[0].price.id;
+        let plan = "free";
+        if (priceId === "price_1TcVGlIcQouyQI6K6uttG2JD") plan = "pro";
+        if (priceId === "price_1TcVHFIcQouyQI6KSdytzdTQ") plan = "expert";
+
+        await supabaseAdmin
+            .from("subscriptions")
+            .update({
+                plan: plan,
+                status: subscription.status,
+            })
+            .eq("stripe_subscription_id", subscription.id);
+      }
+    } catch (err: any) {
+        console.error("Error processing webhook:", err);
+    }
+
+    res.json({ received: true });
   });
 
   // Initialize GoogleGenAI client lazily or safely

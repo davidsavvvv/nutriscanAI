@@ -126,6 +126,16 @@ export default function App() {
 
   // Load cache states on initial client hydration
   useEffect(() => {
+    const handleUrlParams = () => {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get("welcome") === "true") {
+        alert("🎉 Paiement réussi ! Vous avez maintenant accès à votre forfait.");
+        url.searchParams.delete("welcome");
+        window.history.replaceState(null, "", url.toString());
+      }
+    };
+    handleUrlParams();
+
     const fetchUserPlan = async (uid: string) => {
       try {
         const { data } = await supabase
@@ -571,9 +581,14 @@ export default function App() {
       // Cap at 5 if we want, or just increment
       setFreeScansUsed(newScansUsed);
       if (userId) {
-        supabase.from('profiles').update({ free_scans_used: newScansUsed }).eq('id', userId)
-          .then(() => {})
-          .catch(console.error);
+        const updateScans = async () => {
+          try {
+            await supabase.from('profiles').update({ free_scans_used: newScansUsed }).eq('id', userId);
+          } catch(err) {
+            console.error(err);
+          }
+        };
+        updateScans();
       } else {
         localStorage.setItem("ns_free_scans", newScansUsed.toString());
       }
@@ -2242,7 +2257,7 @@ export default function App() {
                       try {
                         const res = await fetch("/api/checkout-session", {
                           method: "POST", headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ priceId: "price_1TcVGlIcQouyQI6K6uttG2JD", userId: "local-user" })
+                          body: JSON.stringify({ priceId: "price_1TcVGlIcQouyQI6K6uttG2JD", userId: userId || "anonymous", customer_email: profileEmail || undefined })
                         });
                         const data = await res.json();
                         if (data.url) window.location.href = data.url;
@@ -2274,7 +2289,7 @@ export default function App() {
                       try {
                         const res = await fetch("/api/checkout-session", {
                           method: "POST", headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ priceId: "price_1TcVHFIcQouyQI6KSdytzdTQ", userId: "local-user" })
+                          body: JSON.stringify({ priceId: "price_1TcVHFIcQouyQI6KSdytzdTQ", userId: userId || "anonymous", customer_email: profileEmail || undefined })
                         });
                         const data = await res.json();
                         if (data.url) window.location.href = data.url;
