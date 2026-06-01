@@ -21,6 +21,8 @@ import {
   Users, Download, Eye, FileText, MessageSquare, Heart 
 } from "lucide-react";
 
+import PremiumPaywallModal from "./components/PremiumPaywallModal";
+
 export default function App() {
   // Session storage keys
   const [history, setHistory] = useState<ScanResult[]>([]);
@@ -65,8 +67,10 @@ export default function App() {
   const [plan, setPlan] = useState<string>("free");
   const [freeScansUsed, setFreeScansUsed] = useState<number>(0);
   const [showPaywall, setShowPaywall] = useState<boolean>(false);
+  const [paywallType, setPaywallType] = useState<"standard" | "expert_upgrade">("standard");
+  const [userId, setUserId] = useState<string | null>(null);
   const [dontKnowTarget, setDontKnowTarget] = useState(false);
-  
+
   // Custom interactive portion modifier state (value between 0.5 and 2.5)
   const [portionSize, setPortionSize] = useState(1.0);
   
@@ -122,6 +126,40 @@ export default function App() {
 
   // Load cache states on initial client hydration
   useEffect(() => {
+    const fetchUserPlan = async (uid: string) => {
+      try {
+        const { data } = await supabase
+          .from('subscriptions')
+          .select('plan, status')
+          .eq('user_id', uid)
+          .eq('status', 'active')
+          .single();
+        
+        if (data && data.plan) {
+          setPlan(data.plan);
+        } else {
+          setPlan("free");
+        }
+
+        const { data: profData } = await supabase
+          .from('profiles')
+          .select('free_scans_used')
+          .eq('id', uid)
+          .single();
+          
+        if (profData && typeof profData.free_scans_used === 'number') {
+          setFreeScansUsed(profData.free_scans_used);
+        } else {
+          const stored = localStorage.getItem("ns_free_scans");
+          if (stored) {
+            setFreeScansUsed(parseInt(stored, 10) || 0);
+          }
+        }
+      } catch (e) {
+        setPlan("free");
+      }
+    };
+
     const handleInitialRoute = async () => {
       const href = window.location.href;
       const url = new URL(href);
@@ -227,6 +265,8 @@ export default function App() {
       // 2. Check session and navigate
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
+          setUserId(session.user.id);
+          fetchUserPlan(session.user.id);
           if (session.user?.email) {
             setProfileEmail(session.user.email);
           }
@@ -251,6 +291,9 @@ export default function App() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_OUT") {
+          setUserId(null);
+          setPlan("free");
+          setFreeScansUsed(0);
           setProfileEmail("");
           setHistory([]);
           setProfileGoals([]);
@@ -258,6 +301,8 @@ export default function App() {
           localStorage.removeItem("ns_history_v2");
           setViewMode("landing");
       } else if (session) {
+        setUserId(session.user.id);
+        fetchUserPlan(session.user.id);
         if (session.user?.email) {
             setProfileEmail(session.user.email);
         }
@@ -504,8 +549,10 @@ export default function App() {
 
   const handleScannerTabComplete = (result: ScanResult) => {
     const normalized = normalizeFrenchResultToLegacy(result);
-    // Add blurred flag if limit exceeded
-    const isLocked = plan === "free" && freeScansUsed >= 5;
+    // Features are ALWAYS locked for free users
+    // But we use isLocked specifically for the premium modal trigger maybe?
+    // Actually, we'll set isLocked = true for all free users.
+    const isLocked = plan === "free";
     
     const enriched = {
       ...normalized,
@@ -521,12 +568,19 @@ export default function App() {
     // Update scan usage
     if (plan === "free") {
       const newScansUsed = freeScansUsed + 1;
+      // Cap at 5 if we want, or just increment
       setFreeScansUsed(newScansUsed);
-      localStorage.setItem("ns_free_scans_used", newScansUsed.toString());
+      if (userId) {
+        supabase.from('profiles').update({ free_scans_used: newScansUsed }).eq('id', userId)
+          .then(() => {})
+          .catch(console.error);
+      } else {
+        localStorage.setItem("ns_free_scans", newScansUsed.toString());
+      }
       
-      // If exactly 5, show paywall popup after results
-      if (newScansUsed === 5) {
+      if (newScansUsed >= 5) {
         setTimeout(() => {
+          setPaywallType("standard");
           setShowPaywall(true);
         }, 1500);
       }
@@ -1508,6 +1562,8 @@ export default function App() {
                       onScanComplete={handleScannerTabComplete}
                       isLoading={isLoading}
                       setIsLoading={setIsLoading}
+                      plan={plan}
+                      freeScansUsed={freeScansUsed}
                     />
                     
                     {plan === "free" && (
@@ -2244,6 +2300,14 @@ export default function App() {
         </div>
       )}
 
+      {showPaywall && (
+        <PremiumPaywallModal 
+          onClose={() => setShowPaywall(false)}
+          userId={userId}
+          userEmail={profileEmail}
+          currentPlan={plan}
+        />
+      )}
     </div>
   );
 }

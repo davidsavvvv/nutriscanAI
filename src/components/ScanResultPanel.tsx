@@ -224,22 +224,24 @@ export default function ScanResultPanel({ result, onClear, plan = "free", onUnlo
 
               {/* Composition detail locked overlay wrapper */}
               <div className="relative mt-6">
-                {result.isLocked && (
-                  <div className="absolute inset-0 bg-slate-50/70 backdrop-blur-md z-10 flex flex-col items-center justify-center rounded-[28px] border border-slate-200 p-6 text-center">
-                    <div className="w-16 h-16 bg-white border-2 border-slate-200 rounded-full flex items-center justify-center mb-4 shadow-sm">
-                      <span className="text-3xl">🔒</span>
+                {(plan === "free" || result.isLocked) && (
+                  <div className="absolute inset-0 bg-slate-50/70 backdrop-blur-md z-10 flex flex-col items-center justify-center rounded-[28px] border border-slate-200 p-6 text-center shadow-[inset_0_0_50px_rgba(0,0,0,0.05)]">
+                    <div className="w-16 h-16 bg-[#1a1a1a] border-2 border-[#00FF88]/40 shadow-[0_0_20px_rgba(0,255,136,0.3)] rounded-full flex items-center justify-center mb-4 relative drop-shadow">
+                      <span className="text-3xl filter drop-shadow">🔒</span>
+                      <div className="absolute inset-0 rounded-full bg-[#00FF88]/20 animate-ping"></div>
                     </div>
-                    <h3 className="text-xl font-bold font-display text-slate-900 mb-2">Fonctionnalité Pro</h3>
-                    <p className="text-sm text-slate-600 mb-6 max-w-sm">
+                    <h3 className="text-xl font-black font-display text-slate-900 mb-2">Fonctionnalité Pro</h3>
+                    <p className="text-sm text-slate-700 font-medium mb-6 max-w-sm">
                       Débloque l'analyse complète (additifs, vitamines, alertes, avis de l'IA).
                     </p>
-                    <button onClick={onUnlock} className="bg-[#00FF88] text-black font-extrabold text-sm py-3 px-8 rounded-2xl shadow hover:opacity-90 active:scale-95 transition-all">
-                      Essayer Pro 7 jours gratuits →
+                    <button onClick={onUnlock} className="bg-[#00FF88] text-black font-extrabold text-sm py-3 px-8 rounded-full shadow-[0_0_20px_rgba(0,255,136,0.3)] hover:scale-105 active:scale-95 transition-all">
+                      Débloquer avec Pro →
                     </button>
+                    <p className="text-[10px] text-slate-500 font-bold mt-4">7 jours gratuits</p>
                   </div>
                 )}
                 
-                <div className={result.isLocked ? "opacity-30 pointer-events-none blur-[4px] transition-all space-y-4" : "space-y-4"}>
+                <div className={(plan === "free" || result.isLocked) ? "opacity-30 pointer-events-none blur-[6px] transition-all space-y-4 filter" : "space-y-4"}>
                   {/* Composition detail */}
                   <div className="bg-white border border-slate-200 rounded-[28px] p-6 space-y-2">
                     <h3 className="text-slate-800 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 font-display mb-3">
@@ -435,22 +437,24 @@ export default function ScanResultPanel({ result, onClear, plan = "free", onUnlo
 
           {/* Locked wrapper for detailed English UI */}
           <div className="relative mt-6 space-y-4">
-            {result.isLocked && (
-              <div className="absolute inset-0 bg-slate-50/70 backdrop-blur-md z-10 flex flex-col items-center justify-center rounded-[28px] border border-slate-200 p-6 text-center">
-                <div className="w-16 h-16 bg-white border-2 border-slate-200 rounded-full flex items-center justify-center mb-4 shadow-sm">
-                  <span className="text-3xl">🔒</span>
+            {(plan === "free" || result.isLocked) && (
+              <div className="absolute inset-0 bg-slate-50/70 backdrop-blur-md z-10 flex flex-col items-center justify-center rounded-[28px] border border-slate-200 p-6 text-center shadow-[inset_0_0_50px_rgba(0,0,0,0.05)]">
+                <div className="w-16 h-16 bg-[#1a1a1a] border-2 border-[#00FF88]/40 shadow-[0_0_20px_rgba(0,255,136,0.3)] rounded-full flex items-center justify-center mb-4 relative drop-shadow">
+                  <span className="text-3xl filter drop-shadow">🔒</span>
+                  <div className="absolute inset-0 rounded-full bg-[#00FF88]/20 animate-ping"></div>
                 </div>
-                <h3 className="text-xl font-bold font-display text-slate-900 mb-2">Fonctionnalité Pro</h3>
-                <p className="text-sm text-slate-600 mb-6 max-w-sm">
+                <h3 className="text-xl font-black font-display text-slate-900 mb-2">Fonctionnalité Pro</h3>
+                <p className="text-sm text-slate-700 font-medium mb-6 max-w-sm">
                   Débloque l'analyse détaillée des édulcorants et les recommandations IA.
                 </p>
-                <button onClick={onUnlock} className="bg-[#00FF88] text-black font-extrabold text-sm py-3 px-8 rounded-2xl shadow hover:opacity-90 active:scale-95 transition-all">
-                  Essayer Pro 7 jours gratuits →
+                <button onClick={onUnlock} className="bg-[#00FF88] text-black font-extrabold text-sm py-3 px-8 rounded-full shadow-[0_0_20px_rgba(0,255,136,0.3)] hover:scale-105 active:scale-95 transition-all">
+                  Débloquer avec Pro →
                 </button>
+                <p className="text-[10px] text-slate-500 font-bold mt-4">7 jours gratuits</p>
               </div>
             )}
             
-            <div className={result.isLocked ? "opacity-30 pointer-events-none blur-[4px] transition-all space-y-4" : "space-y-4"}>
+            <div className={(plan === "free" || result.isLocked) ? "opacity-30 pointer-events-none blur-[6px] transition-all space-y-4 filter" : "space-y-4"}>
               {/* Sweeteners and Artificial Additives */}
               <div className="bg-white border border-slate-200 p-6 rounded-[28px]">
                 <h3 className="text-slate-800 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-1.5 font-display">

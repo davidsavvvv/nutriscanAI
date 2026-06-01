@@ -5,9 +5,11 @@ interface ScannerTabProps {
   onScanComplete: (result: any, previewUrl?: string) => void;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
+  plan?: string;
+  freeScansUsed?: number;
 }
 
-export default function ScannerTab({ onScanComplete, isLoading, setIsLoading }: ScannerTabProps) {
+export default function ScannerTab({ onScanComplete, isLoading, setIsLoading, plan = "free", freeScansUsed = 0 }: ScannerTabProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
@@ -175,6 +177,51 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading }: 
   return (
     <div className="flex flex-col gap-6">
       
+      {/* SCAN BUDGET PROGRESS BAR (Only if free) */}
+      {plan === "free" && (
+        <div className="bg-[#111] border border-[#2a2a2a] p-4 rounded-3xl animate-in fade-in duration-500 mb-2">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-xs font-bold text-slate-300 uppercase tracking-wider font-display flex items-center gap-2">
+              📸 Scans gratuits {freeScansUsed}/5
+            </span>
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white/5 text-slate-400">
+              {5 - freeScansUsed} restants
+            </span>
+          </div>
+          <div className="w-full h-2 bg-[#222] rounded-full overflow-hidden flex">
+            {Array.from({ length: 5 }).map((_, i) => {
+              const active = i < freeScansUsed;
+              // Colors: green -> orange -> red
+              let color = 'bg-[#00FF88]';
+              if (freeScansUsed >= 4) color = 'bg-rose-500';
+              else if (freeScansUsed === 3) color = 'bg-amber-400';
+
+              return (
+                <div 
+                  key={i} 
+                  className={`flex-1 h-full border-r border-[#111] last:border-r-0 transition-all duration-500 ${active ? color : 'bg-[#222]'}`} 
+                />
+              );
+            })}
+          </div>
+          {freeScansUsed === 3 && (
+            <p className="text-[11px] text-amber-400/80 mt-2 font-medium flex items-center gap-1.5 animate-pulse">
+              ✨ Tu adores ScanMyMacros ? Plus que 2 scans gratuits...
+            </p>
+          )}
+          {freeScansUsed === 4 && (
+            <p className="text-[11px] text-rose-400 mt-2 font-bold flex items-center gap-1.5 animate-[pulse_1.5s_infinite]">
+              ⚠️ Dernier scan gratuit ! Débloque Pro ensuite.
+            </p>
+          )}
+          {freeScansUsed >= 5 && (
+            <p className="text-[11px] text-rose-500 mt-2 font-bold flex items-center gap-1.5">
+              🛑 Limite atteinte. Passe à Pro pour continuer.
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Scanner Box container */}
       <div 
         className={`relative w-full flex flex-col items-center justify-center transition-all ${
@@ -260,8 +307,14 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading }: 
         {!cameraActive && !imagePreview && (
           <div className="w-full text-center flex flex-col gap-4 mt-2">
             <button
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full h-[120px] bg-[#00FF88] hover:bg-[#00e67a] active:scale-[0.98] text-black rounded-[24px] flex flex-col items-center justify-center shadow-[0_0_30px_rgba(0,255,136,0.2)] transition-all cursor-pointer border border-[#00d4aa]"
+              onClick={() => {
+                 if (plan === "free" && freeScansUsed >= 5) {
+                    alert("Limite de scans atteinte. Veuillez passer à Pro.");
+                    return;
+                 }
+                 fileInputRef.current?.click();
+              }}
+              className={`w-full h-[120px] bg-[#00FF88] hover:bg-[#00e67a] active:scale-[0.98] text-black rounded-[24px] flex flex-col items-center justify-center shadow-[0_0_30px_rgba(0,255,136,0.2)] transition-all cursor-pointer border border-[#00d4aa] ${(plan === "free" && freeScansUsed >= 5) ? "opacity-50 grayscale" : ""}`}
             >
               <span className="text-4xl mb-1">📸</span>
               <span className="font-extrabold text-2xl font-display tracking-wider block">Prendre une photo</span>
@@ -269,8 +322,14 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading }: 
             </button>
 
             <button
-              onClick={() => uploadInputRef.current?.click()}
-              className="w-full h-[54px] bg-[#1a1a1a] hover:bg-[#222] border-2 border-[#2a2a2a] text-slate-300 font-bold text-[13px] rounded-[16px] flex items-center justify-center transition-all cursor-pointer"
+              onClick={() => {
+                 if (plan === "free" && freeScansUsed >= 5) {
+                    alert("Limite de scans atteinte. Veuillez passer à Pro.");
+                    return;
+                 }
+                 uploadInputRef.current?.click();
+              }}
+              className={`w-full h-[54px] bg-[#1a1a1a] hover:bg-[#222] border-2 border-[#2a2a2a] text-slate-300 font-bold text-[13px] rounded-[16px] flex items-center justify-center transition-all cursor-pointer ${(plan === "free" && freeScansUsed >= 5) ? "opacity-50" : ""}`}
             >
               <Upload className="w-4 h-4 mr-2 opacity-50" /> Télécharger une photo
             </button>
@@ -285,6 +344,7 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading }: 
           capture="environment"
           className="hidden"
           onChange={handleFileInputChange}
+          disabled={plan === "free" && freeScansUsed >= 5}
         />
 
         {/* Secondary file input for standard gallery/file picker upload */}
@@ -294,6 +354,7 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading }: 
           accept="image/*"
           className="hidden"
           onChange={handleFileInputChange}
+          disabled={plan === "free" && freeScansUsed >= 5}
         />
       </div>
 
