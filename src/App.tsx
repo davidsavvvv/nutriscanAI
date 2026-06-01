@@ -2259,10 +2259,17 @@ export default function App() {
                           method: "POST", headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({ priceId: "price_1TcVGlIcQouyQI6K6uttG2JD", userId: userId || "anonymous", customer_email: profileEmail || undefined })
                         });
+                        
+                        if (!res.ok) {
+                          const errorData = await res.text();
+                          throw new Error(`Erreur réseau: ${res.status} ${errorData}`);
+                        }
+                        
                         const data = await res.json();
                         if (data.url) window.location.href = data.url;
-                      } catch (e) {
-                         alert("Erreur Stripe");
+                      } catch (e: any) {
+                         console.error("Stripe Error Details:", e);
+                         alert("Erreur de connexion avec Stripe. Veuillez vérifier votre réseau ou contacter le support.");
                       }
                     }}
                     className="w-full bg-[#1a1a1a] border border-[#222] group-hover:border-[#00FF88]/30 group-hover:bg-[#00FF88]/10 text-[#00FF88] py-2.5 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1">
@@ -2291,10 +2298,17 @@ export default function App() {
                           method: "POST", headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({ priceId: "price_1TcVHFIcQouyQI6KSdytzdTQ", userId: userId || "anonymous", customer_email: profileEmail || undefined })
                         });
+                        
+                        if (!res.ok) {
+                          const errorData = await res.text();
+                          throw new Error(`Erreur réseau: ${res.status} ${errorData}`);
+                        }
+                        
                         const data = await res.json();
                         if (data.url) window.location.href = data.url;
-                      } catch (e) {
-                         alert("Erreur Stripe");
+                      } catch (e: any) {
+                         console.error("Stripe Error Details:", e);
+                         alert("Erreur de connexion avec Stripe. Veuillez vérifier votre réseau ou contacter le support.");
                       }
                     }}
                     className="w-full bg-[#a855f7] text-white py-2.5 rounded-xl font-bold text-xs shadow-[0_0_15px_rgba(168,85,247,0.3)] flex items-center justify-center gap-1 active:scale-95 transition-all">

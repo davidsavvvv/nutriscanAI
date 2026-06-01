@@ -23,12 +23,19 @@ export default function PremiumPaywallModal({ onClose, userId, userEmail, curren
           customer_email: userEmail 
         })
       });
+      
+      if (!res.ok) {
+        const errorData = await res.text();
+        throw new Error(`Erreur réseau: ${res.status} ${errorData}`);
+      }
+      
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
       }
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      console.error("Stripe Error Details:", e);
+      alert("Erreur de connexion avec Stripe. Veuillez vérifier votre réseau ou contacter le support.");
       setLoadingPlan(null);
     }
   };
