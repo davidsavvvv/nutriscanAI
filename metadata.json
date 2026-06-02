@@ -1,5 +1,5 @@
 {
-  "name": "NutriScan AI",
+  "name": "Scan My Macro",
   "description": "AI nutrition scanner for gym snacks, drinks, processed foods and fitness energy drinks.",
   "requestFramePermissions": ["camera"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

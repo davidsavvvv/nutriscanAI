@@ -125,6 +125,17 @@ export default function App() {
 
   // Load cache states on initial client hydration
   useEffect(() => {
+    const handleOpenPaywall = () => {
+      setPaywallType(plan === "pro" ? "expert_upgrade" : "standard");
+      setShowPaywall(true); 
+    };
+    document.addEventListener('openPaywall', handleOpenPaywall);
+    return () => {
+      document.removeEventListener('openPaywall', handleOpenPaywall);
+    };
+  }, [plan]);
+
+  useEffect(() => {
     const handleUrlParams = () => {
       const url = new URL(window.location.href);
       if (url.searchParams.get("welcome") === "true") {
@@ -703,15 +714,24 @@ export default function App() {
               <a href="#faq" className="hover:text-[#00d4aa] transition-colors">FAQs</a>
             </div>
           ) : (
-            <div className="hidden sm:flex items-center gap-3">
-              <span className="text-xs bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-1.5 rounded-full text-slate-300 font-mono flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#00d4aa]" />
-                Premium Live Scanner Connected
-              </span>
-              {isPremiumUser && (
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-[#7c3aed]/20 text-[#c084fc] border border-[#7c3aed]/50 px-2.5 py-1 rounded">
-                  PRO Plan Active
+            <div className="flex items-center gap-2 sm:gap-3">
+              {plan === "expert" && (
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-3 py-1.5 rounded-full shadow-[0_0_15px_rgba(147,51,234,0.3)] flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-white" />
+                  PLAN EXPERT ACTIF
                 </span>
+              )}
+              {plan === "pro" && (
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-[#00d4aa]/20 border border-[#00d4aa]/50 text-[#00d4aa] px-3 py-1.5 rounded-full flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3 text-[#00d4aa]" />
+                  PLAN PRO ACTIF
+                </span>
+              )}
+              {plan === "free" && (
+                 <span className="hidden sm:flex text-xs bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-1.5 rounded-full text-slate-300 font-mono items-center gap-1.5">
+                   <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
+                   Mode Gratuit ({5 - Math.min(freeScansUsed, 5)} scans restants)
+                 </span>
               )}
             </div>
           )}
@@ -1945,7 +1965,7 @@ export default function App() {
                   <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#00d4aa]"></span>
                 </span>
                 <div>
-                  <h4 className="text-xs font-extrabold text-white block">Nutriscan AI Personal Coach</h4>
+                  <h4 className="text-xs font-extrabold text-white block">Scan My Macro Coach</h4>
                   <span className="text-[9px] text-slate-400">Online 24/7 • David & Marcus Assistance</span>
                 </div>
               </div>
@@ -1994,34 +2014,7 @@ export default function App() {
         </button>
       </div>
 
-      {/* COOKIE GDPR COMPLIANT CONSENT BANNER */}
-      {cookieConsent && (
-        <div className="fixed bottom-6 left-6 z-40 max-w-sm bg-[#141414] border border-[#2a2a2a] p-5 rounded-2xl space-y-3.5 shadow-2xl font-sans text-left">
-          <p className="text-xs text-slate-300 leading-relaxed">
-            We use essential security and macro mathematical tracking cookies to persist your scanned diet logs offline directly inside your sandboxed browser.
-          </p>
-          <div className="flex gap-2">
-            <button 
-              onClick={() => {
-                setCookieConsent(false);
-                localStorage.setItem("ns_cookie_consent", "accepted");
-              }}
-              className="bg-[#00d4aa] text-black font-bold text-xs px-4 py-2 rounded-xl transition-all hover:brightness-110"
-            >
-              Accept all
-            </button>
-            <button 
-              onClick={() => {
-                setCookieConsent(false);
-                localStorage.setItem("ns_cookie_consent", "declined");
-              }}
-              className="text-slate-400 hover:text-white border border-slate-700 text-xs px-4 py-2 rounded-xl transition-all"
-            >
-              Decline
-            </button>
-          </div>
-        </div>
-      )}
+
 
       {showWeeklyReportModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -2097,7 +2090,7 @@ export default function App() {
           </div>
         </div>
         <div className="text-[10px] text-slate-600 font-mono uppercase tracking-widest pt-4 border-t border-[#1a1a1a]">
-          © 2026 NUTRISCAN SAAS INC. CLINIC METRIC ANALYSIS CLUSTER. ALL RIGHTS RESERVED.
+          © 2026 SCAN MY MACRO SAAS INC. CLINIC METRIC ANALYSIS CLUSTER. ALL RIGHTS RESERVED.
         </div>
       </footer>
 

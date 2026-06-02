@@ -41,7 +41,7 @@ export default async function handler(req: any, res: any) {
       subscription_data: {
         trial_period_days: 7,
       },
-      payment_method_collection: "if_required",
+      payment_method_collection: "always",
     };
     
     if (customer_email) {

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, DragEvent, ChangeEvent } from "react";
 import { Camera, Upload, AlertCircle, Sparkles, Image as ImageIcon, Video, VideoOff, RefreshCw } from "lucide-react";
+import { motion } from "motion/react";
 
 interface ScannerTabProps {
   onScanComplete: (result: any, previewUrl?: string) => void;
@@ -357,6 +358,34 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading, pl
           disabled={plan === "free" && freeScansUsed >= 5}
         />
       </div>
+
+      {/* BLOCKING SCREEN IF LIMIT REACHED */}
+      {plan === "free" && freeScansUsed >= 5 && (
+        <div className="absolute inset-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md rounded-[32px] flex flex-col justify-center items-center p-6 text-center shadow-2xl border border-white/10 animate-in fade-in zoom-in-95 duration-500 overflow-hidden">
+          
+          <motion.div 
+             className="w-32 h-32 mb-4 filter drop-shadow-xl"
+             animate={{ rotate: [-3, 3, -3] }}
+             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          >
+             <img src="/images/poulpe_triste.png" alt="Poulpe Triste" className="w-full h-full object-contain" />
+          </motion.div>
+
+          <h3 className="text-2xl font-black font-display text-white tracking-tight mb-2">
+            Tu as utilisé tes 5 scans gratuits !
+          </h3>
+          <p className="text-slate-400 font-medium mb-8">
+            Passe au Pro pour scanner illimité
+          </p>
+
+          <button 
+             onClick={() => document.dispatchEvent(new CustomEvent('openPaywall'))}
+             className="w-full h-[56px] min-h-[56px] bg-purple-600 hover:bg-purple-500 active:scale-[0.98] transition-all rounded-[16px] text-white font-extrabold text-base flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(147,51,234,0.3)]"
+          >
+             Essayer Pro 7 jours gratuits →
+          </button>
+        </div>
+      )}
 
       {/* Loading message HUD */}
       {isLoading && (
