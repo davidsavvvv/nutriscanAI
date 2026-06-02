@@ -3,8 +3,8 @@ import { motion } from "motion/react";
 
 export function TestimonialsSection() {
   const testimonials = [
-    { name: "Marc T.", r: "A perdu 12kg", rating: 5, t: "Un électrochoc esthétique", desc: "NutriScan m'a ouvert les yeux sur les sucres cachés dans mes produits 'sains'. La prise de conscience a été brutale, mais les résultats sont là. Moins 12 kilos sans régime strict, juste en mangeant intelligemment." },
-    { name: "Dr. Sarah L.", r: "Endocrinologue", rating: 5, t: "Un outil clinique redoutable", desc: "Je recommande NutriScan à mes patients insulinorésistants. L'application lit derrière les étiquettes complexes et pointe les édulcorants de synthèse en rouge. Une transparence rare." },
+    { name: "Marc T.", r: "A perdu 12kg", rating: 5, t: "Un électrochoc esthétique", desc: "Scan My Macro m'a ouvert les yeux sur les sucres cachés dans mes produits 'sains'. La prise de conscience a été brutale, mais les résultats sont là. Moins 12 kilos sans régime strict, juste en mangeant intelligemment." },
+    { name: "Dr. Sarah L.", r: "Endocrinologue", rating: 5, t: "Un outil clinique redoutable", desc: "Je recommande Scan My Macro à mes patients insulinorésistants. L'application lit derrière les étiquettes complexes et pointe les édulcorants de synthèse en rouge. Une transparence rare." },
     { name: "Élise R.", r: "Mère de 3 enfants", rating: 5, t: "Je ne me fais plus avoir", desc: "Je pensais bien nourrir mes enfants jusqu'à ce que je scanne leurs goûters préférés. Le choc ! Aujourd'hui, je sais exactement ce qu'ils avalent. C'est sécurisant." },
     { name: "Jonathan B.", r: "Sportif de force", rating: 5, t: "Mes macros à la perfection", desc: "J'en avais marre de passer 45 minutes par jour sur d'autres applications lourdes. Une photo de l'assiette et j'ai mes protéines. C'est l'avenir du tracking." },
     { name: "Nadia B.", r: "Sensible au gluten", rating: 5, t: "L'application m'a sauvé", desc: "L'IA a détecté des traces d'extrait d'orge dans une barre de fitness 'sans gluten' que j'allais acheter. Impressionnant d'efficacité." },

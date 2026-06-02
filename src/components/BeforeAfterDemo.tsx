@@ -63,7 +63,7 @@ export function BeforeAfterDemo() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="w-full md:w-1/3 bg-[#0d0d0d] p-6 rounded-[28px] border border-rose-900/30 relative transition-transform transform md:group-hover:translate-x-2 duration-500 shadow-[0_0_30px_rgba(225,29,72,0.05)]"
             >
-              <span className="absolute top-4 left-6 text-[10px] font-mono font-bold text-[#00FF88] uppercase tracking-widest">Apres (NutriScan)</span>
+              <span className="absolute top-4 left-6 text-[10px] font-mono font-bold text-[#00FF88] uppercase tracking-widest">Apres (Scan My Macro)</span>
               
               <div className="mt-6 space-y-4">
                 <div className="flex items-center justify-between bg-black/40 p-3 rounded-xl border border-rose-950">
@@ -138,7 +138,7 @@ export function BeforeAfterDemo() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="w-full md:w-1/3 bg-[#0d0d0d] p-6 rounded-[28px] border border-orange-900/30 relative transition-transform transform md:group-hover:translate-x-2 duration-500 shadow-[0_0_30px_rgba(249,115,22,0.05)]"
             >
-              <span className="absolute top-4 left-6 text-[10px] font-mono font-bold text-[#00FF88] uppercase tracking-widest">Apres (NutriScan)</span>
+              <span className="absolute top-4 left-6 text-[10px] font-mono font-bold text-[#00FF88] uppercase tracking-widest">Apres (Scan My Macro)</span>
               
               <div className="mt-6 space-y-4">
                 <div className="flex items-center justify-between bg-black/40 p-3 rounded-xl border border-orange-950">
@@ -213,7 +213,7 @@ export function BeforeAfterDemo() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="w-full md:w-1/3 bg-[#0d0d0d] p-6 rounded-[28px] border border-[#059669]/30 relative transition-transform transform md:group-hover:translate-x-2 duration-500 shadow-[0_0_30px_rgba(5,150,105,0.05)]"
             >
-              <span className="absolute top-4 left-6 text-[10px] font-mono font-bold text-[#00d4aa] uppercase tracking-widest">Apres (NutriScan)</span>
+              <span className="absolute top-4 left-6 text-[10px] font-mono font-bold text-[#00d4aa] uppercase tracking-widest">Apres (Scan My Macro)</span>
               
               <div className="mt-6 space-y-4">
                 <div className="flex items-center justify-between bg-black/40 p-3 rounded-xl border border-emerald-950">

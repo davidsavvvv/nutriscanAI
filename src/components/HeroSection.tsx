@@ -24,7 +24,7 @@ export function HeroSection({ onCtaClick }: HeroSectionProps) {
 
   return (
     <div className="w-full">
-      <section className="relative pt-24 pb-32 md:pt-32 md:pb-40 text-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[80vh] flex flex-col justify-center">
+      <section className="relative pt-8 pb-32 md:pt-16 md:pb-32 text-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[60vh] flex flex-col justify-start md:justify-center">
         {/* Background glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl h-[400px] bg-[#00FF88] opacity-[0.03] blur-[120px] rounded-full pointer-events-none"></div>
 
@@ -57,13 +57,16 @@ export function HeroSection({ onCtaClick }: HeroSectionProps) {
             </div>
           </div>
 
-          <div className="pt-8 px-5 md:px-0">
+          <div className="pt-2 mb-20 px-5 md:px-0">
             <button
               onClick={onCtaClick}
-              className="w-full md:w-auto px-8 py-5 rounded-full bg-[#00FF88] hover:bg-[#00e67a] hover:scale-105 active:scale-95 text-black font-extrabold text-base md:text-base tracking-wider shadow-[0_0_40px_rgba(0,255,136,0.4)] transition-all flex items-center justify-center gap-3 mx-auto min-h-[50px]"
+              className="w-[90%] md:w-auto px-4 md:px-8 py-4 md:py-5 rounded-full bg-[#00FF88] hover:bg-[#00e67a] hover:scale-105 active:scale-95 text-black font-extrabold text-[15px] md:text-base tracking-wider shadow-[0_0_40px_rgba(0,255,136,0.4)] transition-all flex items-center justify-center gap-3 mx-auto max-w-[320px] md:max-w-none min-h-[50px] relative z-20"
             >
               📸 Je veux savoir ce que je mange →
             </button>
+            <div className="mt-8 flex justify-center animate-bounce text-white/50">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
           </div>
 
         </div>

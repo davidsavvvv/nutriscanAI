@@ -1,9 +1,10 @@
-import { ScanResult } from "../types";
+import { ScanResult as ScanResultType } from "../types";
 import { getProductSVG } from "../data";
 import { ShieldAlert, TrendingUp, Sparkles, RefreshCw, Layers, Zap, Info, CheckCircle2, AlertTriangle, Activity } from "lucide-react";
+import ScanResult from "./ScanResult";
 
 interface ScanResultPanelProps {
-  result: ScanResult;
+  result: ScanResultType;
   onClear: () => void;
   plan?: string;
   onUnlock?: () => void;
@@ -19,7 +20,9 @@ export default function ScanResultPanel({ result, onClear, plan = "free", onUnlo
   };
 
   const healthScore = getScoreNumber(result.health_score);
+  const numericScoreOutOf100 = healthScore <= 10 ? healthScore * 10 : healthScore;
   const fitnessScore = getScoreNumber(result.fitness_score);
+
 
   // Score Colors & Labels inside minimalist framework
   const getScoreColor = (score: number) => {
@@ -87,6 +90,8 @@ export default function ScanResultPanel({ result, onClear, plan = "free", onUnlo
           <RefreshCw className="w-3.5 h-3.5" /> {isDetailedFrenchMode ? "Scanner de nouveau" : "Scan Another Item"}
         </button>
       </div>
+
+      <ScanResult score={numericScoreOutOf100} />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         

@@ -90,10 +90,9 @@ export default function App() {
   // Floating support widgets and exit intent
   const [showSupportBot, setShowSupportBot] = useState(false);
   const [supportMessages, setSupportMessages] = useState<Array<{ sender: "user" | "bot"; text: string }>>([
-    { sender: "bot", text: "Welcome to NutriScan AI live cellular support! Ask me any nutrition, macro, or fitness question." }
+    { sender: "bot", text: "Welcome to Scan My Macro live cellular support! Ask me any nutrition, macro, or fitness question." }
   ]);
   const [supportInput, setSupportInput] = useState("");
-  const [showExitIntent, setShowExitIntent] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
   const [cookieConsent, setCookieConsent] = useState(true);
   const [analysisProgress, setAnalysisProgress] = useState(0);
@@ -286,9 +285,7 @@ export default function App() {
           setViewMode("dashboard");
           setActiveTab("home");
         } else {
-          if (window.location.pathname === "/scanner") {
-              window.location.href = "/";
-          } else if (window.location.pathname === "/auth/confirm") {
+          if (window.location.pathname === "/auth/confirm") {
               window.location.href = "/";
           }
         }
@@ -370,22 +367,11 @@ export default function App() {
     const handleScroll = () => {
       if (window.scrollY > 400) setHasScrolled(true);
     };
-    
-    const handleMouseLeave = (e: MouseEvent) => {
-      if (e.clientY < 30) {
-        const dismissed = sessionStorage.getItem("ns_exit_intent_dismissed");
-        if (!dismissed) {
-          setShowExitIntent(true);
-        }
-      }
-    };
 
     window.addEventListener("scroll", handleScroll);
-    document.addEventListener("mouseleave", handleMouseLeave);
     
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      document.removeEventListener("mouseleave", handleMouseLeave);
     };
   }, []);
 
@@ -644,7 +630,7 @@ export default function App() {
       if (query.includes("protein") || query.includes("muscle")) {
         botResp = "Excellent question! High biological value proteins like milk whey isolates, egg whites, and grass-fed lean beef promote muscle hypertrophy. Aim for 2.0g of protein per kg of bodyweight.";
       } else if (query.includes("calorie") || query.includes("weight") || query.includes("lose")) {
-        botResp = `Your personal NutriScan goal is currently set to ${profileCalories} kcal. Keeping a steady daily negative calorie balance of roughly 300 to 500 kcal is ideal for healthy body fat reduction without taxing metabolic recovery.`;
+        botResp = `Your personal Scan My Macro goal is currently set to ${profileCalories} kcal. Keeping a steady daily negative calorie balance of roughly 300 to 500 kcal is ideal for healthy body fat reduction without taxing metabolic recovery.`;
       } else if (query.includes("sweetener") || query.includes("sucralose") || query.includes("diet")) {
         botResp = "Processed sweeteners (Acesulfame K, Sucralose, Aspartame) bypass immediate glucose digestion but are clinically tracked for potentially altering microbiome flora and increasing sweet cravings.";
       } else if (query.includes("avocado") || query.includes("toast")) {
@@ -699,7 +685,7 @@ export default function App() {
             </div>
             <div>
               <span className="text-lg font-extrabold tracking-tight font-display text-white block">
-                NutriScan <span className="text-[#00d4aa] font-medium font-sans">AI</span>
+                Scan My Macro
               </span>
               <p className="text-[9px] font-mono text-slate-400 tracking-wider font-semibold uppercase leading-none">
                 Clinical Diet Processor
@@ -858,7 +844,7 @@ export default function App() {
                   </div>
                   <div className="space-y-2">
                     <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight font-display text-white">
-                      NutriScan <span className="text-[#00d4aa]">AI</span>
+                      Scan My Macro
                     </h2>
                     <p className="text-lg font-bold text-slate-200">Your AI nutritionist, right in your pocket</p>
                     <p className="text-sm text-slate-400 max-w-sm mx-auto">
@@ -2008,63 +1994,6 @@ export default function App() {
         </button>
       </div>
 
-      {/* EXIT INTENT PROMO MODAL POPUP */}
-      {showExitIntent && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-[#161616] border border-[#2a2a2a] rounded-[32px] p-8 text-center space-y-6 relative shadow-2xl animate-fade-in">
-            <button 
-              onClick={() => {
-                setShowExitIntent(false);
-                sessionStorage.setItem("ns_exit_intent_dismissed", "true");
-              }} 
-              className="absolute top-4 right-4 text-slate-500 hover:text-white"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <span className="text-xs bg-amber-950 text-amber-400 font-extrabold uppercase px-3.5 py-1.5 rounded-full border border-amber-900/30 font-mono tracking-widest inline-block">
-              ⚠️ EXCLUSIVE ONCE-OFF SAVINGS
-            </span>
-
-            <div className="space-y-2">
-              <h3 className="text-2xl font-black text-white">Wait! Don't leave empty-handed</h3>
-              <p className="text-slate-400 text-xs leading-relaxed">
-                David - Sign up now and experience continuous scanning with a full **30-day Premium Trial 100% Free**! Cancel in 1-click anytime.
-              </p>
-            </div>
-
-            <div className="p-4 bg-[#00d4aa]/5 border border-[#00d4aa]/20 rounded-2xl flex justify-between items-center text-left">
-              <div>
-                <span className="text-[10px] text-slate-500 uppercase font-mono block">Custom Trial Code:</span>
-                <span className="text-white font-extrabold text-xs">NUTRI-30FREE</span>
-              </div>
-              <button 
-                onClick={() => {
-                  setShowExitIntent(false);
-                  setIsPremiumUser(true);
-                  setViewMode("dashboard");
-                  setActiveTab("upgrade");
-                  alert("Simulated Premium account successfully unlocked of 30 days!");
-                }}
-                className="bg-[#00d4aa] text-black font-extrabold text-[11px] px-3.5 py-2.5 rounded-xl uppercase tracking-wider"
-              >
-                Claim Free Trial
-              </button>
-            </div>
-
-            <button
-              onClick={() => {
-                setShowExitIntent(false);
-                sessionStorage.setItem("ns_exit_intent_dismissed", "true");
-              }}
-              className="text-xs text-slate-500 hover:text-white text-center block mx-auto underline"
-            >
-              No thanks, I will pay full price later
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* COOKIE GDPR COMPLIANT CONSENT BANNER */}
       {cookieConsent && (
         <div className="fixed bottom-6 left-6 z-40 max-w-sm bg-[#141414] border border-[#2a2a2a] p-5 rounded-2xl space-y-3.5 shadow-2xl font-sans text-left">
@@ -2142,7 +2071,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-left">
             <span className="font-extrabold tracking-tight text-white block">
-              NutriScan <span className="text-[#00FF88]">AI</span>
+              Scan My Macro
             </span>
             <p className="text-[10px] text-slate-500 mt-1 uppercase font-mono tracking-widest">
               Commercial clinical sport diagnostic compounds

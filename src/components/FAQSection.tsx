@@ -8,7 +8,7 @@ export function FAQSection() {
     },
     { 
       q: "Est-ce qu'il détecte vraiment les sucres cachés dans les aliments industriels ?", 
-      a: "Absolument. NutriScan lit la liste des d'ingrédients ou le code-barres et met en lumière les édulcorants artificiels (Aspartame, Sucralose) ou les sirops modifiés que l'industrie utilise sous des noms complexes." 
+      a: "Absolument. Scan My Macro lit la liste des d'ingrédients ou le code-barres et met en lumière les édulcorants artificiels (Aspartame, Sucralose) ou les sirops modifiés que l'industrie utilise sous des noms complexes." 
     },
     { 
       q: "Je fais une sèche / prise de masse. Peut-il adapter les macros ?", 
