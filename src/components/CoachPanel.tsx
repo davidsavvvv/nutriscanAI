@@ -236,35 +236,11 @@ export default function CoachPanel({ history, plan = "free", onUnlockExpert }: C
   // Default SVG for octopus until image is ready
   const OctopusAvatar = () => (
     <div className="w-[180px] h-[180px] relative mx-auto my-6 animate-bounce" style={{ animationDuration: '3s' }}>
-      {/* Assuming user will drop coach-octopus.png here */}
       <img 
-        src="/assets/coach-octopus.png" 
+        src="/images/poulpe_muscle.png" 
         alt="Coach Octopus" 
-        className="w-full h-full object-contain"
-        onError={(e) => {
-          // Fallback to SVG if image not found
-          e.currentTarget.style.display = 'none';
-          e.currentTarget.nextElementSibling?.classList.remove('hidden');
-        }}
+        className="w-full h-full object-contain filter drop-shadow-[0_0_20px_rgba(0,255,136,0.3)]"
       />
-      <svg className="w-full h-full text-[#00FF88] hidden" viewBox="0 0 100 100" fill="currentColor">
-        {imc < 18.5 ? (
-          // Thin worried octopus
-          <path d="M50 10 c-15 0 -25 15 -25 35 c0 5 2 10 5 15 l-10 20 c-2 4 4 6 6 2 l5 -15 c5 3 12 5 19 5 s14 -2 19 -5 l5 15 c2 4 8 2 6 -2 l-10 -20 c3 -5 5 -10 5 -15 c0 -20 -10 -35 -25 -35 z m-10 25 a3 3 0 1 1 0 6 a3 3 0 1 1 0 -6 m20 0 a3 3 0 1 1 0 6 a3 3 0 1 1 0 -6 m-10 15 a5 3 0 0 1 -5 3 h10 a5 3 0 0 1 -5 -3 z" />
-        ) : imc < 25 ? (
-          // Athletic 💪
-          <path d="M50 15 c-20 0 -30 15 -30 35 c0 5 2 10 5 15 l-15 25 c-3 5 5 8 8 3 l10 -20 c6 4 14 6 22 6 s16 -2 22 -6 l10 20 c3 5 11 2 8 -3 l-15 -25 c3 -5 5 -10 5 -15 c0 -20 -10 -35 -30 -35 z m-12 20 a4 4 0 1 1 0 8 a4 4 0 1 1 0 -8 m24 0 a4 4 0 1 1 0 8 a4 4 0 1 1 0 -8 m-12 15 c-4 0 -8 -2 -10 -5 c2 3 6 4 10 4 s8 -1 10 -4 c-2 3 -6 5 -10 5 z" />
-        ) : imc < 30 ? (
-          // Average motivated
-          <path d="M50 15 c-25 0 -35 15 -35 35 c0 6 3 12 6 15 l-12 25 c-3 6 5 8 8 2 l10 -18 c8 4 17 6 23 6 s15 -2 23 -6 l10 18 c3 6 11 4 8 -2 l-12 -25 c3 -3 6 -9 6 -15 c0 -20 -10 -35 -35 -35 z m-14 22 a4 4 0 1 1 0 8 a4 4 0 1 1 0 -8 m28 0 a4 4 0 1 1 0 8 a4 4 0 1 1 0 -8 m-14 18 c-5 0 -10 -2 -14 -6 c3 4 8 5 14 5 s11 -1 14 -5 c-4 4 -9 6 -14 6 z" />
-        ) : imc < 35 ? (
-          // Chubby friendly
-          <path d="M50 20 c-30 0 -40 20 -40 40 c0 6 3 12 6 18 l-15 20 c-4 5 4 10 8 5 l12 -20 c10 5 20 8 29 8 s19 -3 29 -8 l12 20 c4 5 12 0 8 -5 l-15 -20 c3 -6 6 -12 6 -18 c0 -20 -10 -40 -40 -40 z m-16 25 a4 4 0 1 1 0 8 a4 4 0 1 1 0 -8 m32 0 a4 4 0 1 1 0 8 a4 4 0 1 1 0 -8 m-16 15 c-5 0 -12 2 -18 6 c5 -3 11 -5 18 -5 s13 2 18 5 c-6 -4 -13 -6 -18 -6 z" />
-        ) : (
-          // Very chubby super motivated
-          <path d="M50 20 c-35 0 -45 25 -45 45 c0 8 4 15 8 20 l-18 25 c-5 7 5 12 10 5 l15 -25 c10 6 22 10 30 10 s20 -4 30 -10 l15 25 c5 7 15 2 10 -5 l-18 -25 c4 -5 8 -12 8 -20 c0 -20 -10 -45 -45 -45 z m-18 28 a5 5 0 1 1 0 10 a5 5 0 1 1 0 -10 m36 0 a5 5 0 1 1 0 10 a5 5 0 1 1 0 -10 m-18 20 c-8 0 -15 -2 -22 -6 c6 3 14 5 22 5 s16 -2 22 -5 c-7 4 -14 6 -22 6 z" />
-        )}
-      </svg>
     </div>
   );
 
@@ -274,7 +250,7 @@ export default function CoachPanel({ history, plan = "free", onUnlockExpert }: C
       {/* Speech Bubble */}
       <div className="relative bg-[#1a1a1a] border-[#2a2a2a] border rounded-2xl p-4 sm:p-5 text-center shadow-lg mx-auto w-fit max-w-[90%] sm:max-w-[80%]">
         <p className="text-white font-bold text-sm sm:text-base inline-block font-display animate-typing">
-          Bonjour {profile?.name || ""} ! Je suis ton coach 🐙
+          Bonjour {profile?.name || ""} ! Je suis ton coach
         </p>
         {/* Tail */}
         <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[12px] border-r-[12px] border-t-[12px] border-l-transparent border-r-transparent border-t-[#1a1a1a]"></div>
