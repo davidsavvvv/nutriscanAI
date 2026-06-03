@@ -29,9 +29,10 @@ export default function App() {
   const [activeResult, setActiveResult] = useState<ScanResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
-  // App views: 'landing' | 'dashboard' | 'login'
-  const [viewMode, setViewMode] = useState<"landing" | "dashboard" | "login">(
+  // App views: 'landing' | 'dashboard' | 'login' | 'pricing'
+  const [viewMode, setViewMode] = useState<"landing" | "dashboard" | "login" | "pricing">(
     window.location.pathname === "/scanner" ? "dashboard" : 
+    window.location.pathname === "/pricing" ? "pricing" :
     window.location.pathname === "/login" ? "login" : "landing"
   );
   
@@ -147,29 +148,27 @@ export default function App() {
     handleUrlParams();
 
     const fetchUserPlan = async (uid: string) => {
+      let hasActivePlan = false;
       try {
-        const { data } = await supabase
-          .from('subscriptions')
-          .select('plan, status')
-          .eq('user_id', uid)
-          .eq('status', 'active')
-          .single();
-        
-        if (data && data.plan) {
-          setPlan(data.plan);
-        } else {
-          setPlan("free");
-        }
-
         const { data: profData } = await supabase
           .from('profiles')
-          .select('free_scans_used')
+          .select('subscription_status, free_scans_used')
           .eq('id', uid)
           .single();
           
-        if (profData && typeof profData.free_scans_used === 'number') {
-          setFreeScansUsed(profData.free_scans_used);
+        if (profData) {
+          if (profData.subscription_status === 'active' || profData.subscription_status === 'trialing') {
+             hasActivePlan = true;
+             setPlan("pro");
+          } else {
+             setPlan("free");
+          }
+
+          if (typeof profData.free_scans_used === 'number') {
+            setFreeScansUsed(profData.free_scans_used);
+          }
         } else {
+          setPlan("free");
           const stored = localStorage.getItem("ns_free_scans");
           if (stored) {
             setFreeScansUsed(parseInt(stored, 10) || 0);
@@ -178,6 +177,7 @@ export default function App() {
       } catch (e) {
         setPlan("free");
       }
+      return hasActivePlan;
     };
 
     const handleInitialRoute = async () => {
@@ -283,18 +283,23 @@ export default function App() {
       }
 
       // 2. Check session and navigate
-      supabase.auth.getSession().then(({ data: { session } }) => {
+      supabase.auth.getSession().then(async ({ data: { session } }) => {
         if (session) {
           setUserId(session.user.id);
-          fetchUserPlan(session.user.id);
           if (session.user?.email) {
             setProfileEmail(session.user.email);
           }
-          if (window.location.pathname === "/" || window.location.pathname === "/login" || window.location.hash.includes("access_token") || window.location.pathname === "/auth/confirm") {
-              window.history.replaceState(null, "", "/scanner");
+          const hasPlan = await fetchUserPlan(session.user.id);
+          if (hasPlan) {
+            if (window.location.pathname === "/" || window.location.pathname === "/login" || window.location.pathname === "/pricing" || window.location.hash.includes("access_token") || window.location.pathname === "/auth/confirm") {
+                window.history.replaceState(null, "", "/scanner");
+            }
+            setViewMode("dashboard");
+            setActiveTab("home");
+          } else {
+            window.history.replaceState(null, "", "/pricing");
+            setViewMode("pricing");
           }
-          setViewMode("dashboard");
-          setActiveTab("home");
         } else {
           if (window.location.pathname === "/auth/confirm") {
               window.location.href = "/";
@@ -320,15 +325,22 @@ export default function App() {
           setViewMode("landing");
       } else if (session) {
         setUserId(session.user.id);
-        fetchUserPlan(session.user.id);
         if (session.user?.email) {
             setProfileEmail(session.user.email);
         }
-        if (window.location.pathname === "/" || window.location.pathname === "/login" || window.location.hash.includes("access_token") || window.location.pathname === "/auth/confirm") {
-            window.history.replaceState(null, "", "/scanner");
-        }
-        setViewMode("dashboard");
-        setActiveTab("home");
+        (async () => {
+          const hasPlan = await fetchUserPlan(session.user.id);
+          if (hasPlan) {
+            if (window.location.pathname === "/" || window.location.pathname === "/login" || window.location.pathname === "/pricing" || window.location.hash.includes("access_token") || window.location.pathname === "/auth/confirm") {
+                window.history.replaceState(null, "", "/scanner");
+            }
+            setViewMode("dashboard");
+            setActiveTab("home");
+          } else {
+            window.history.replaceState(null, "", "/pricing");
+            setViewMode("pricing");
+          }
+        })();
       }
     });
 
@@ -1494,6 +1506,25 @@ export default function App() {
               setActiveTab("home");
             }} />
           </div>
+        </div>
+      )}
+
+      {/* VIEW 4: PRICING (POST-LOGIN NO PLAN) */}
+      {viewMode === "pricing" && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-24 flex flex-col min-h-[calc(100vh-80px)]">
+          <PricingSection 
+            onUpgradeClick={() => {
+              setIsPremiumUser(true);
+              setViewMode("dashboard");
+              setActiveTab("upgrade");
+            }}
+            onDashboardClick={() => {
+              setViewMode("dashboard");
+              setActiveTab("home");
+            }}
+            annualBilling={annualBilling}
+            setAnnualBilling={setAnnualBilling}
+          />
         </div>
       )}
 

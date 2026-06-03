@@ -17,6 +17,23 @@ export function Login({ onSuccess }: LoginProps) {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isSignUp, setIsSignUp] = useState(false);
 
+  const handleGoogleLogin = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'https://scanmymacros.com/scanner'
+        }
+      });
+      if (error) throw error;
+    } catch (err: any) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -62,7 +79,7 @@ export function Login({ onSuccess }: LoginProps) {
 
   return (
     <div className="w-full max-w-md mx-auto p-6 sm:p-8 rounded-3xl bg-[#141414] border border-[#232323] shadow-lg">
-      <div className="text-center mb-8">
+      <div className="text-center mb-6">
         <h2 className="text-2xl font-bold font-display text-white mb-2">
           {isSignUp ? "Créer un compte" : "Bon retour"}
         </h2>
@@ -71,6 +88,29 @@ export function Login({ onSuccess }: LoginProps) {
              ? "Rejoignez-nous pour commencer."
              : "Connectez-vous pour accéder à votre espace."}
         </p>
+      </div>
+
+      <button
+        type="button"
+        onClick={handleGoogleLogin}
+        disabled={loading}
+        className="w-full relative flex items-center justify-center gap-3 py-3 px-4 mb-6 border border-[#2a2a2a] rounded-xl text-sm font-bold text-white bg-[#0a0a0a] hover:bg-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#141414] focus:ring-[#7c3aed] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+      >
+        <img
+          src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+          alt="Google logo"
+          className="w-5 h-5"
+        />
+        Continuer avec Google
+      </button>
+
+      <div className="relative mb-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-[#2a2a2a]"></div>
+        </div>
+        <div className="relative flex justify-center text-xs">
+          <span className="bg-[#141414] px-4 text-slate-500 uppercase tracking-wider font-bold">— ou —</span>
+        </div>
       </div>
 
       <form onSubmit={handleAuth} className="space-y-5">
