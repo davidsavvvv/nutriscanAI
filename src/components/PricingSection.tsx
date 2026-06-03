@@ -7,9 +7,10 @@ interface PricingSectionProps {
   onDashboardClick: () => void;
   annualBilling: boolean;
   setAnnualBilling: (val: boolean) => void;
+  hideFreePlan?: boolean;
 }
 
-export function PricingSection({ onUpgradeClick, onDashboardClick, annualBilling, setAnnualBilling }: PricingSectionProps) {
+export function PricingSection({ onUpgradeClick, onDashboardClick, annualBilling, setAnnualBilling, hideFreePlan = false }: PricingSectionProps) {
   
   return (
     <section id="pricing" className="py-32 bg-black border-t border-[#202020] relative">
@@ -43,31 +44,33 @@ export function PricingSection({ onUpgradeClick, onDashboardClick, annualBilling
         </div>
 
         {/* 3 Tier Grid */}
-        <div className="flex flex-col md:grid md:grid-cols-3 gap-8 max-w-5xl mx-auto text-left items-stretch pt-8 w-full">
+        <div className={`flex flex-col ${hideFreePlan ? 'md:max-w-3xl justify-center items-center mx-auto' : 'md:grid md:grid-cols-3'} gap-8 max-w-5xl mx-auto text-left items-stretch pt-8 w-full`}>
           
           {/* Free plan */}
-          <div className="order-2 md:order-1 w-full bg-[#0a0a0a] border border-[#222] p-8 rounded-[36px] flex flex-col justify-between relative hover:border-[#333] transition-colors gap-8">
-            <div className="space-y-4">
-              <span className="text-xs text-slate-500 font-bold uppercase tracking-wider font-mono">Curieux</span>
-              <h3 className="text-2xl font-black text-white">Découverte</h3>
-              <p className="text-sm text-slate-400 min-h-[40px]">Testez la puissance de l'analyse IA sur vos produits du quotidien.</p>
-              <div className="text-4xl font-black font-display text-white transition-all pt-4">
-                0€ <span className="text-sm text-slate-500 font-normal">/ à vie</span>
+          {!hideFreePlan && (
+            <div className="order-2 md:order-1 w-full bg-[#0a0a0a] border border-[#222] p-8 rounded-[36px] flex flex-col justify-between relative hover:border-[#333] transition-colors gap-8">
+              <div className="space-y-4">
+                <span className="text-xs text-slate-500 font-bold uppercase tracking-wider font-mono">Curieux</span>
+                <h3 className="text-2xl font-black text-white">Découverte</h3>
+                <p className="text-sm text-slate-400 min-h-[40px]">Testez la puissance de l'analyse IA sur vos produits du quotidien.</p>
+                <div className="text-4xl font-black font-display text-white transition-all pt-4">
+                  0€ <span className="text-sm text-slate-500 font-normal">/ à vie</span>
+                </div>
+                <ul className="space-y-4 text-sm text-slate-300 pt-6 border-t border-[#222]">
+                  <li className="flex items-start gap-3"><Check className="text-slate-500 w-5 h-5 shrink-0" /> <span>3 scans journaliers</span></li>
+                  <li className="flex items-start gap-3"><Check className="text-slate-500 w-5 h-5 shrink-0" /> <span>Analyse basique (Calories, Macros)</span></li>
+                  <li className="flex items-start gap-3 text-slate-600"><X className="w-5 h-5 shrink-0" /> <span className="line-through">Détection des sucres cachés</span></li>
+                  <li className="flex items-start gap-3 text-slate-600"><X className="w-5 h-5 shrink-0" /> <span className="line-through">Alertes additifs & toxiques</span></li>
+                </ul>
               </div>
-              <ul className="space-y-4 text-sm text-slate-300 pt-6 border-t border-[#222]">
-                <li className="flex items-start gap-3"><Check className="text-slate-500 w-5 h-5 shrink-0" /> <span>3 scans journaliers</span></li>
-                <li className="flex items-start gap-3"><Check className="text-slate-500 w-5 h-5 shrink-0" /> <span>Analyse basique (Calories, Macros)</span></li>
-                <li className="flex items-start gap-3 text-slate-600"><X className="w-5 h-5 shrink-0" /> <span className="line-through">Détection des sucres cachés</span></li>
-                <li className="flex items-start gap-3 text-slate-600"><X className="w-5 h-5 shrink-0" /> <span className="line-through">Alertes additifs & toxiques</span></li>
-              </ul>
+              <button 
+                onClick={onDashboardClick}
+                className="w-full h-[56px] py-4 bg-[#111] border border-[#333] hover:bg-[#222] text-white font-bold rounded-2xl transition-all text-center text-sm"
+              >
+                Créer un compte gratuit
+              </button>
             </div>
-            <button 
-              onClick={onDashboardClick}
-              className="w-full h-[56px] py-4 bg-[#111] border border-[#333] hover:bg-[#222] text-white font-bold rounded-2xl transition-all text-center text-sm"
-            >
-              Créer un compte gratuit
-            </button>
-          </div>
+          )}
 
           {/* Premium Plan */}
           <div className="order-1 md:order-2 w-full bg-[#0f0f0f] border-2 border-[#00FF88] p-8 rounded-[36px] flex flex-col justify-between relative shadow-[0_0_40px_rgba(0,255,136,0.1)] transform md:-translate-y-4 gap-8">

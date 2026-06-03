@@ -202,12 +202,7 @@ export default function App() {
       if (code) {
         try {
           const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-          if (!exchangeError) {
-             window.history.replaceState(null, "", "/scanner");
-             setViewMode("dashboard");
-             setActiveTab("home");
-             return;
-          } else {
+          if (exchangeError) {
              console.error("Code exchange failed:", exchangeError.message);
              window.history.replaceState(null, "", "/");
              setAuthError("Erreur de connexion, réessaie");
@@ -226,12 +221,7 @@ export default function App() {
       if (token_hash) {
         try {
           const { error } = await supabase.auth.verifyOtp({ token_hash, type: type as any });
-          if (!error) {
-             window.history.replaceState(null, "", "/scanner");
-             setViewMode("dashboard");
-             setActiveTab("home");
-             return;
-          } else {
+          if (error) {
              console.error("OTP verification failed:", error.message);
              window.history.replaceState(null, "", "/");
              setAuthError("Erreur de connexion, réessaie");
@@ -254,32 +244,26 @@ export default function App() {
 
         if (confirmCode) {
           const { error } = await supabase.auth.exchangeCodeForSession(confirmCode);
-          if (!error) {
-             window.history.replaceState(null, "", "/scanner");
-             setViewMode("dashboard");
-             setActiveTab("home");
+          if (error) {
+             window.history.replaceState(null, "", "/");
+             setAuthError("Erreur de connexion, réessaie");
+             setViewMode("landing");
              return;
           }
         } else if (confirmTokenHash) {
           const { error } = await supabase.auth.verifyOtp({ token_hash: confirmTokenHash, type: confirmType as any });
-          if (!error) {
-             window.history.replaceState(null, "", "/scanner");
-             setViewMode("dashboard");
-             setActiveTab("home");
+          if (error) {
+             window.history.replaceState(null, "", "/");
+             setAuthError("Erreur de connexion, réessaie");
+             setViewMode("landing");
              return;
           }
-        }
-        window.history.replaceState(null, "", "/");
-        setAuthError("Erreur de connexion, réessaie");
-        setViewMode("landing");
-        return;
-      }
-
-      if (window.location.hash.includes("access_token")) {
-          window.history.replaceState(null, "", "/scanner");
-          setViewMode("dashboard");
-          setActiveTab("home");
+        } else {
+          window.history.replaceState(null, "", "/");
+          setAuthError("Erreur de connexion, réessaie");
+          setViewMode("landing");
           return;
+        }
       }
 
       // 2. Check session and navigate
@@ -1524,6 +1508,7 @@ export default function App() {
             }}
             annualBilling={annualBilling}
             setAnnualBilling={setAnnualBilling}
+            hideFreePlan={true}
           />
         </div>
       )}
