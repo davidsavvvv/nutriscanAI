@@ -18,9 +18,13 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const { priceId, userId, customer_email } = req.body;
+    let { priceId, userId, customer_email } = req.body;
     const stripe = getStripe();
     
+    if (priceId === "starter" && process.env.STRIPE_STARTER_PRICE_ID) {
+      priceId = process.env.STRIPE_STARTER_PRICE_ID;
+    }
+
     // In Vercel, req.headers.referer might not always be perfect, fallback to a hardcoded URL or origin
     const referer = req.headers.referer || "https://scanmymacros.com/";
     const successUrl = new URL("/scanner?welcome=true", referer).toString();
