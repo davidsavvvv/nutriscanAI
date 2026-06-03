@@ -152,12 +152,20 @@ export default function App() {
     const fetchUserPlan = async (uid: string) => {
       let hasActivePlan = false;
       try {
-        const { data: profData } = await supabase
+        const { data: profData, error: profError } = await supabase
           .from('profiles')
           .select('subscription_status, free_scans_used')
           .eq('id', uid)
-          .single();
+          .maybeSingle();
           
+        if (profError) {
+          console.error("fetchUserPlan error", profError);
+        }
+
+        if (!profData && !profError) {
+            await supabase.from('profiles').insert({ id: uid });
+        }
+
         if (profData) {
           if (profData.subscription_status === 'active' || profData.subscription_status === 'trialing') {
              hasActivePlan = true;
@@ -195,8 +203,9 @@ export default function App() {
       const hasError = href.includes("error=") || href.includes("error_code=");
 
       if (hasError) {
+        const errorDesc = searchParams.get("error_description") || hashParams.get("error_description") || "Erreur de connexion, réessaie";
         window.history.replaceState(null, "", "/");
-        setAuthError("Erreur de connexion, réessaie");
+        setAuthError(decodeURIComponent(errorDesc.replace(/\+/g, ' ')));
         setViewMode("landing");
         return;
       }
@@ -1454,14 +1463,10 @@ export default function App() {
           {/* PRICING PLANS SECTION */}
           <PricingSection 
             onUpgradeClick={() => {
-              setIsPremiumUser(true);
-              setViewMode("dashboard");
-              setActiveTab("upgrade");
-              alert("Abonnement Premium activé dans le simulateur ! Merci.");
+              setViewMode("login");
             }}
             onDashboardClick={() => {
-              setViewMode("dashboard");
-              setActiveTab("home");
+              setViewMode("login");
             }}
             annualBilling={annualBilling}
             setAnnualBilling={setAnnualBilling}
@@ -1512,10 +1517,30 @@ export default function App() {
       {viewMode === "pricing" && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-24 flex flex-col min-h-[calc(100vh-80px)]">
           <PricingSection 
-            onUpgradeClick={() => {
-              setIsPremiumUser(true);
-              setViewMode("dashboard");
-              setActiveTab("upgrade");
+            onUpgradeClick={async (priceId) => {
+              if (priceId) {
+                try {
+                  const res = await fetch("/api/checkout-session", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ priceId, userId: userId || "anonymous", customer_email: profileEmail || undefined })
+                  });
+                  
+                  if (!res.ok) {
+                    const errorData = await res.text();
+                    throw new Error(`Erreur réseau: ${res.status} ${errorData}`);
+                  }
+                  
+                  const data = await res.json();
+                  if (data.url) window.location.href = data.url;
+                } catch (e: any) {
+                  console.error("Stripe Error Details:", e);
+                  alert("Erreur de connexion avec Stripe. Veuillez vérifier votre réseau ou contacter le support.");
+                }
+              } else {
+                 setIsPremiumUser(true);
+                 setViewMode("dashboard");
+                 setActiveTab("upgrade");
+              }
             }}
             onDashboardClick={() => {
               setViewMode("dashboard");

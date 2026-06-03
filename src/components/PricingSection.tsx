@@ -3,7 +3,7 @@ import { Check, X, Shield } from "lucide-react";
 import { motion } from "motion/react";
 
 interface PricingSectionProps {
-  onUpgradeClick: () => void;
+  onUpgradeClick: (priceId?: string) => void;
   onDashboardClick: () => void;
   annualBilling: boolean;
   setAnnualBilling: (val: boolean) => void;
@@ -95,7 +95,7 @@ export function PricingSection({ onUpgradeClick, onDashboardClick, annualBilling
               </ul>
             </div>
             <button 
-              onClick={onUpgradeClick}
+              onClick={() => onUpgradeClick("price_1TcVGlIcQouyQI6K6uttG2JD")}
               className="w-full h-[56px] py-4 bg-[#00FF88] hover:bg-[#00e67a] text-black font-black rounded-2xl transition-transform hover:scale-[1.02] active:scale-95 text-center text-sm shadow-xl shadow-[#00FF88]/20"
             >
               Prendre le contrôle →
@@ -118,7 +118,7 @@ export function PricingSection({ onUpgradeClick, onDashboardClick, annualBilling
               </ul>
             </div>
             <button 
-              onClick={onUpgradeClick}
+              onClick={() => onUpgradeClick("price_1TcVHFIcQouyQI6KSdytzdTQ")}
               className="w-full h-[56px] py-4 bg-[#111] border border-[#333] hover:border-purple-500/50 hover:bg-purple-900/20 text-white font-bold rounded-2xl transition-all text-center text-sm"
             >
               Ouvrir un compte Pro

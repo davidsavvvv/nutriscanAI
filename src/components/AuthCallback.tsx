@@ -25,11 +25,10 @@ export function AuthCallback({ onSuccess, onError }: AuthCallbackProps) {
           const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
           
           if (exchangeError) {
-             console.error("Exchange error:", exchangeError);
-             if (isMounted) setErrorMsg("Erreur de connexion, réessaie");
-             return;
+             console.error("Exchange error (might be already exchanged):", exchangeError);
+          } else {
+             sessionData = data.session;
           }
-          sessionData = data.session;
         }
 
         // Si on n'a pas récupéré la session via exchangeCodeForSession, on essaye de la récupérer
@@ -43,11 +42,20 @@ export function AuthCallback({ onSuccess, onError }: AuthCallbackProps) {
         }
 
         // On vérifie l'abonnement
-        const { data: profData } = await supabase
+        const { data: profData, error: profError } = await supabase
           .from('profiles')
           .select('subscription_status')
           .eq('id', sessionData.user.id)
-          .single();
+          .maybeSingle();
+
+        if (profError) {
+          console.error("Profile fetch error:", profError);
+        }
+
+        // Si le profil n'existe pas, on le crée (optionnel, selon votre config Supabase)
+        if (!profData && !profError) {
+            await supabase.from('profiles').insert({ id: sessionData.user.id });
+        }
 
         let hasPlan = false;
         if (profData && (profData.subscription_status === 'active' || profData.subscription_status === 'trialing')) {
