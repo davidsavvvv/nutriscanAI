@@ -4,6 +4,7 @@ import { ScanResult, SampleProduct } from "./types";
 import ProductCard from "./components/ProductCard";
 import ScannerTab from "./components/ScannerTab";
 import { Login } from "./components/Login";
+import { AuthCallback } from "./components/AuthCallback";
 import { BeforeAfterDemo } from "./components/BeforeAfterDemo";
 import { HeroSection } from "./components/HeroSection";
 import { FeaturesSection } from "./components/FeaturesSection";
@@ -29,8 +30,9 @@ export default function App() {
   const [activeResult, setActiveResult] = useState<ScanResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
-  // App views: 'landing' | 'dashboard' | 'login' | 'pricing'
-  const [viewMode, setViewMode] = useState<"landing" | "dashboard" | "login" | "pricing">(
+  // App views: 'landing' | 'dashboard' | 'login' | 'pricing' | 'auth-callback'
+  const [viewMode, setViewMode] = useState<"landing" | "dashboard" | "login" | "pricing" | "auth-callback">(
+    window.location.pathname === "/auth/callback" ? "auth-callback" :
     window.location.pathname === "/scanner" ? "dashboard" : 
     window.location.pathname === "/pricing" ? "pricing" :
     window.location.pathname === "/login" ? "login" : "landing"
@@ -199,23 +201,8 @@ export default function App() {
         return;
       }
 
-      if (code) {
-        try {
-          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-          if (exchangeError) {
-             console.error("Code exchange failed:", exchangeError.message);
-             window.history.replaceState(null, "", "/");
-             setAuthError("Erreur de connexion, réessaie");
-             setViewMode("landing");
-             return;
-          }
-        } catch (e) {
-          console.error("Code exchange error:", e);
-          window.history.replaceState(null, "", "/");
-          setAuthError("Erreur de connexion, réessaie");
-          setViewMode("landing");
-          return;
-        }
+      if (window.location.pathname === "/auth/callback") {
+        return; // Handled by AuthCallback component
       }
 
       if (token_hash) {
@@ -312,6 +299,11 @@ export default function App() {
         if (session.user?.email) {
             setProfileEmail(session.user.email);
         }
+        
+        if (window.location.pathname === "/auth/callback") {
+          return; // Let AuthCallback handle this to avoid race conditions
+        }
+
         (async () => {
           const hasPlan = await fetchUserPlan(session.user.id);
           if (hasPlan) {
@@ -1478,6 +1470,29 @@ export default function App() {
           {/* FAQ ACCORDION SECTION */}
           <FAQSection />
 
+        </div>
+      )}
+
+      {/* VIEW 5: AUTH CALLBACK */}
+      {viewMode === "auth-callback" && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-24 flex flex-col min-h-[calc(100vh-80px)]">
+          <AuthCallback 
+            onSuccess={(hasPlan) => {
+              if (hasPlan) {
+                window.history.replaceState(null, "", "/scanner");
+                setViewMode("dashboard");
+                setActiveTab("home");
+              } else {
+                window.history.replaceState(null, "", "/pricing");
+                setViewMode("pricing");
+              }
+            }}
+            onError={(msg) => {
+              window.history.replaceState(null, "", "/login");
+              setAuthError(msg);
+              setViewMode("login");
+            }}
+          />
         </div>
       )}
 
