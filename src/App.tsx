@@ -1481,23 +1481,7 @@ export default function App() {
       {/* VIEW 5: AUTH CALLBACK */}
       {viewMode === "auth-callback" && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-24 flex flex-col min-h-[calc(100vh-80px)]">
-          <AuthCallback 
-            onSuccess={(hasPlan) => {
-              if (hasPlan) {
-                window.history.replaceState(null, "", "/scanner");
-                setViewMode("dashboard");
-                setActiveTab("home");
-              } else {
-                window.history.replaceState(null, "", "/pricing");
-                setViewMode("pricing");
-              }
-            }}
-            onError={(msg) => {
-              window.history.replaceState(null, "", "/login");
-              setAuthError(msg);
-              setViewMode("login");
-            }}
-          />
+          <AuthCallback />
         </div>
       )}
 

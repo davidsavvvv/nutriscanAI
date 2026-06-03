@@ -1,81 +1,76 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
-interface AuthCallbackProps {
-  onSuccess: (hasPlan: boolean) => void;
-  onError: (errorMsg: string) => void;
-}
-
-export function AuthCallback({ onSuccess, onError }: AuthCallbackProps) {
+export function AuthCallback() {
   const [message, setMessage] = useState("Connexion en cours...");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
-    const handleCallback = async () => {
+    const checkSessionAndRedirect = async (session: any) => {
       try {
-        const url = new URL(window.location.href);
-        const code = url.searchParams.get("code") || new URLSearchParams(url.hash.substring(1)).get("code");
-        
-        let sessionData = null;
-
-        if (code) {
-          // Échange le code contre une session
-          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-          
-          if (exchangeError) {
-             console.error("Exchange error (might be already exchanged):", exchangeError);
-          } else {
-             sessionData = data.session;
-          }
-        }
-
-        // Si on n'a pas récupéré la session via exchangeCodeForSession, on essaye de la récupérer
-        if (!sessionData) {
-          const { data, error: sessionError } = await supabase.auth.getSession();
-          if (sessionError || !data.session) {
-            if (isMounted) setErrorMsg("Erreur de connexion, réessaie");
-            return;
-          }
-          sessionData = data.session;
-        }
+        if (!session?.user?.id) return;
 
         // On vérifie l'abonnement
         const { data: profData, error: profError } = await supabase
           .from('profiles')
           .select('subscription_status')
-          .eq('id', sessionData.user.id)
+          .eq('id', session.user.id)
           .maybeSingle();
 
         if (profError) {
           console.error("Profile fetch error:", profError);
         }
 
-        // Si le profil n'existe pas, on le crée (optionnel, selon votre config Supabase)
+        // Si le profil n'existe pas, on le crée
         if (!profData && !profError) {
-            await supabase.from('profiles').insert({ id: sessionData.user.id });
+            await supabase.from('profiles').insert({ id: session.user.id });
         }
 
-        let hasPlan = false;
-        if (profData && (profData.subscription_status === 'active' || profData.subscription_status === 'trialing')) {
-          hasPlan = true;
-        }
+        const status = profData?.subscription_status;
         
-        if (isMounted) onSuccess(hasPlan);
-
+        // Si subscription_status est null ou vide → rediriger vers /pricing
+        // Si subscription_status est pro, expert ou starter (ou active/trialing) → rediriger vers /scanner
+        if (!status || status === "") {
+          window.location.href = "/pricing";
+        } else if (['active', 'trialing', 'pro', 'expert', 'starter'].includes(status)) {
+          window.location.href = "/scanner";
+        } else {
+          // Fallback par défaut
+          window.location.href = "/pricing";
+        }
       } catch (err: any) {
         console.error("Callback error:", err);
         if (isMounted) setErrorMsg("Erreur de connexion, réessaie");
       }
     };
 
-    handleCallback();
+    // La bibliothèque Supabase gère automatiquement l'échange du "code" dans l'URL.
+    // Il suffit d'écouter le changement d'état d'authentification ou de récupérer la session.
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error("getSession error:", error);
+        if (isMounted) setErrorMsg("Erreur de connexion, réessaie");
+        return;
+      }
+      
+      if (session) {
+        checkSessionAndRedirect(session);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        checkSessionAndRedirect(session);
+      }
+    });
 
     return () => {
       isMounted = false;
+      subscription.unsubscribe();
     };
-  }, [onSuccess, onError]);
+  }, []);
 
   if (errorMsg) {
     return (
@@ -88,7 +83,7 @@ export function AuthCallback({ onSuccess, onError }: AuthCallbackProps) {
         <h2 className="text-2xl font-bold font-display text-white mb-2">Oups, une erreur s'est produite</h2>
         <p className="text-slate-400 mb-8 max-w-sm">{errorMsg}</p>
         <button 
-          onClick={() => onError(errorMsg)}
+          onClick={() => window.location.href = "/login"}
           className="px-6 py-3 bg-[#111] hover:bg-[#222] text-white rounded-xl border border-[#333] transition-colors"
         >
           Retour à la connexion
