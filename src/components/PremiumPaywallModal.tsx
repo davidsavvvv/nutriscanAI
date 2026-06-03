@@ -151,19 +151,16 @@ export default function PremiumPaywallModal({ onClose, userId, userEmail, curren
               </div>
 
               <h3 className="text-2xl font-black text-white flex items-center gap-2">
-                PRO <span className="text-2xl">💪</span>
+                STARTER <span className="text-2xl">🌱</span>
               </h3>
               
               <div className="mt-4 mb-2 flex flex-col">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-5xl font-black text-white tracking-tighter">6.99€</span>
+                  <span className="text-5xl font-black text-white tracking-tighter">0.90€</span>
                   <span className="text-slate-500 font-medium">/mois</span>
                 </div>
-                <span className="inline-block bg-[#00FF88]/10 text-[#00FF88] text-xs font-bold px-2 py-1 rounded-md mt-2 w-fit">
-                  7 jours gratuits
-                </span>
                 <p className="text-slate-400 text-sm mt-3 flex items-center gap-1.5">
-                  ☕ Moins qu'un café par semaine
+                  L'essentiel pour bien manger
                 </p>
               </div>
 
@@ -171,18 +168,12 @@ export default function PremiumPaywallModal({ onClose, userId, userEmail, curren
 
               <ul className="space-y-4 mb-8 flex-grow">
                 {[
-                  { text: "Tout le gratuit +", type: "check-star" },
-                  { text: "Scans illimités", type: "check" },
-                  { text: "Analyse complète des additifs", type: "check" },
-                  { text: "Vitamines et minéraux", type: "check" },
+                  { text: "Scans classiques", type: "check" },
+                  { text: "Analyse Macros", type: "check" },
+                  { text: "Objectif calorique", type: "check" },
                   { text: "Coach poulpe basique", type: "check" },
-                  { text: "Historique illimité", type: "check" },
-                  { text: "Calculatrice calories", type: "check" },
-                  { text: "Objectif calorique journalier", type: "check" },
-                  { text: "Selfie évolution photos", type: "cross-blur" },
-                  { text: "Plan alimentaire IA", type: "cross-blur" },
-                  { text: "Export PDF", type: "cross-blur" },
-                  { text: "Support prioritaire 24/7", type: "cross-blur" }
+                  { text: "Alertes Toxinques", type: "cross-blur" },
+                  { text: "Coach IA Complet", type: "cross-blur" }
                 ].map((feat, i) => (
                   <li key={i} className={`flex items-start gap-3 text-sm font-medium leading-tight ${feat.type === 'cross-blur' ? 'text-slate-500 opacity-50 blur-[2px] select-none scale-95' : 'text-slate-300'}`}>
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${feat.type === 'cross-blur' ? 'bg-rose-500/10' : 'bg-[#00FF88]/20'}`}>
@@ -200,41 +191,41 @@ export default function PremiumPaywallModal({ onClose, userId, userEmail, curren
               </ul>
 
               <button 
-                onClick={() => handleSubscribe("price_1TcVGlIcQouyQI6K6uttG2JD", "pro")}
+                onClick={() => handleSubscribe("starter", "starter")}
                 disabled={loadingPlan !== null}
-                className="w-full bg-[#00FF88] text-black hover:bg-[#00eabf] disabled:opacity-50 py-4 rounded-2xl font-extrabold text-base flex items-center justify-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(0,255,136,0.2)] hover:shadow-[0_0_40px_rgba(0,255,136,0.4)]"
+                className="w-full bg-[#222] hover:bg-[#333] text-white disabled:opacity-50 py-4 rounded-2xl font-extrabold text-base flex items-center justify-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95"
               >
-                {loadingPlan === "pro" ? <RefreshCw className="w-5 h-5 animate-spin" /> : "Essayer Pro gratuitement →"}
+                {loadingPlan === "starter" ? <RefreshCw className="w-5 h-5 animate-spin" /> : "Choisir Starter →"}
               </button>
             </div>
           )}
 
-          <div className="relative bg-[#111111] border-2 border-purple-500/30 rounded-[32px] p-8 flex flex-col hover:border-[#FFD700]/50 transition-all duration-300 group overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-[#FFD700]/5 to-purple-500/5 pointer-events-none" />
+          <div className="relative bg-[#111111] border-2 border-[#00FF88]/30 rounded-[32px] p-8 flex flex-col hover:border-[#00FF88]/60 transition-all duration-300 group overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-[#00FF88]/5 to-[#00FF88]/5 pointer-events-none" />
             
-            <div className="absolute top-0 right-0 bg-gradient-to-r from-[#FFD700] to-amber-500 text-black text-[10px] font-extrabold px-3 py-1.5 rounded-bl-xl rounded-tr-[28px] uppercase tracking-wider shadow-lg">
-              👑 Maximum
+            <div className="absolute top-0 right-0 bg-gradient-to-r from-[#00FF88] to-emerald-500 text-black text-[10px] font-extrabold px-3 py-1.5 rounded-bl-xl rounded-tr-[28px] uppercase tracking-wider shadow-lg">
+              👑 Recommandé
             </div>
 
             <h3 className="text-2xl font-black text-white flex items-center gap-2">
-              EXPERT
+              PREMIUM
             </h3>
             
             <div className="mt-4 mb-2 flex flex-col">
                {isPro && (
-                <div className="text-[#FFD700] text-[11px] font-bold uppercase tracking-widest mb-1">
-                  Seulement +8€/mois de plus
+                <div className="text-[#00FF88] text-[11px] font-bold uppercase tracking-widest mb-1">
+                  Seulement +6.09€/mois de plus
                 </div>
                )}
               <div className="flex items-baseline gap-1">
-                <span className="text-5xl font-black text-white tracking-tighter">14.99€</span>
+                <span className="text-5xl font-black text-white tracking-tighter">6.99€</span>
                 <span className="text-slate-500 font-medium">/mois</span>
               </div>
-              <span className="inline-block bg-[#FFD700]/10 text-[#FFD700] text-xs font-bold px-2 py-1 rounded-md mt-2 w-fit">
+              <span className="inline-block bg-[#00FF88]/10 text-[#00FF88] text-xs font-bold px-2 py-1 rounded-md mt-2 w-fit">
                 {isPro ? "Mise à niveau immédiate" : "7 jours gratuits"}
               </span>
               <p className="text-slate-400 text-sm mt-3 flex items-center gap-1.5">
-                🍽️ Moins qu'un repas au restaurant
+                🏆 Accès Total
               </p>
             </div>
 
@@ -246,20 +237,19 @@ export default function PremiumPaywallModal({ onClose, userId, userEmail, curren
                   <div className="w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center shrink-0">
                     <span className="text-xs">✨</span>
                   </div>
-                  Tout le Pro +
+                  Tout Starter +
                 </li>
               )}
               {[
-                "Selfie évolution photos",
-                "Plan alimentaire IA hebdomadaire",
-                "Export PDF des analyses",
-                "Alertes allergènes personnalisées",
-                "Support prioritaire 24/7",
-                "Coach poulpe avancé avec conseils IA"
+                "Scans illimités (Assiettes & Codes Barres)",
+                "Alerte Toxique (Additifs nocifs)",
+                "Alternatives saines en temps réel",
+                "IA Coach Nutrition",
+                "Support prioritaire 24/7"
               ].map((feat, i) => (
                 <li key={i} className="flex items-start gap-3 text-slate-300 text-sm font-medium leading-tight">
-                  <div className="w-5 h-5 rounded-full bg-[#FFD700]/20 flex items-center justify-center shrink-0">
-                    {isPro ? <Zap className="w-3.5 h-3.5 text-[#FFD700]" /> : <CheckCircle2 className="w-3.5 h-3.5 text-[#FFD700]" />}
+                  <div className="w-5 h-5 rounded-full bg-[#00FF88]/20 flex items-center justify-center shrink-0">
+                    {isPro ? <Zap className="w-3.5 h-3.5 text-[#00FF88]" /> : <CheckCircle2 className="w-3.5 h-3.5 text-[#00FF88]" />}
                   </div>
                   {feat}
                 </li>
@@ -267,31 +257,25 @@ export default function PremiumPaywallModal({ onClose, userId, userEmail, curren
             </ul>
 
             <button 
-              onClick={() => handleSubscribe("price_1TcVHFIcQouyQI6KSdytzdTQ", "expert")}
+              onClick={() => handleSubscribe("price_1TcVGlIcQouyQI6K6uttG2JD", "premium")}
               disabled={loadingPlan !== null}
-              className="w-full relative bg-gradient-to-r from-[#FFD700] to-amber-500 text-black hover:opacity-90 disabled:opacity-50 py-4 rounded-2xl font-extrabold text-base flex items-center justify-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(255,215,0,0.2)] hover:shadow-[0_0_40px_rgba(255,215,0,0.4)] overflow-hidden"
+              className="w-full relative bg-[#00FF88] text-black hover:bg-[#00eabf] disabled:opacity-50 py-4 rounded-2xl font-extrabold text-base flex items-center justify-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(0,255,136,0.2)] hover:shadow-[0_0_40px_rgba(0,255,136,0.4)] overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shine_1.5s_ease-out_infinite]" />
-              {loadingPlan === "expert" ? <RefreshCw className="w-5 h-5 animate-spin" /> : (isPro ? "Passer à Expert →" : "Essayer Expert gratuitement →")}
+              {loadingPlan === "premium" ? <RefreshCw className="w-5 h-5 animate-spin" /> : (isPro ? "Passer à Premium →" : "Démarrer mes 7 jours gratuits →")}
             </button>
           </div>
           
         </div>
 
         <div className="mt-8 pt-6 border-t border-[#222] flex flex-col items-center justify-center text-center relative z-10 w-full max-w-2xl mx-auto">
-          <p className="text-slate-400 text-xs sm:text-sm font-medium flex flex-wrap justify-center items-center gap-2 sm:gap-4 mb-4">
+          <p className="text-slate-400 text-xs sm:text-sm font-medium flex flex-wrap justify-center items-center gap-2 sm:gap-4">
             <span>🔒 Paiement 100% sécurisé</span>
             <span className="hidden sm:inline">•</span>
-            <span>✅ 7 jours gratuits sans carte</span>
+            <span>✅ 7 jours gratuits sans engagement</span>
             <span className="hidden sm:inline">•</span>
             <span>🔄 Annulation en 1 clic</span>
           </p>
-          <button 
-            onClick={onClose}
-            className="text-slate-500 hover:text-slate-300 text-xs font-bold underline underline-offset-4 transition-colors"
-          >
-            Continuer avec accès limité →
-          </button>
         </div>
 
       </div>

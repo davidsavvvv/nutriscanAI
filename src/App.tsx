@@ -167,9 +167,11 @@ export default function App() {
         }
 
         if (profData) {
-          if (profData.subscription_status === 'active' || profData.subscription_status === 'trialing') {
+          const status = profData.subscription_status;
+          if (status === 'active' || status === 'trialing' || status === 'starter' || status === 'pro' || status === 'expert') {
              hasActivePlan = true;
-             setPlan("pro");
+             // Si c'est juste 'active'/'trialing', on suppose pro par défaut (legacy fallback), sinon on prend la valeur
+             setPlan((status === 'active' || status === 'trialing') ? "pro" : status);
           } else {
              setPlan("free");
           }
@@ -570,9 +572,10 @@ export default function App() {
     setPortionSize(1.0);
     
     // Update scan usage
-    if (plan === "free") {
+    if (plan === "free" || plan === "starter") {
       const newScansUsed = freeScansUsed + 1;
-      // Cap at 5 if we want, or just increment
+      const limit = plan === "starter" ? 20 : 5;
+      
       setFreeScansUsed(newScansUsed);
       if (userId) {
         const updateScans = async () => {
@@ -587,9 +590,9 @@ export default function App() {
         localStorage.setItem("ns_free_scans", newScansUsed.toString());
       }
       
-      if (newScansUsed >= 5) {
+      if (newScansUsed >= limit) {
         setTimeout(() => {
-          setPaywallType("standard");
+          setPaywallType(plan === "starter" ? "expert_upgrade" : "standard");
           setShowPaywall(true);
         }, 1500);
       }
@@ -724,10 +727,10 @@ export default function App() {
                   PLAN PRO ACTIF
                 </span>
               )}
-              {plan === "free" && (
+              {(plan === "free" || plan === "starter") && (
                  <span className="hidden sm:flex text-xs bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-1.5 rounded-full text-slate-300 font-mono items-center gap-1.5">
                    <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
-                   Mode Gratuit ({5 - Math.min(freeScansUsed, 5)} scans restants)
+                   Mode {plan === "starter" ? "Starter" : "Gratuit"} ({ (plan === "starter" ? 20 : 5) - Math.min(freeScansUsed, plan === "starter" ? 20 : 5)} scans restants)
                  </span>
               )}
             </div>
@@ -1468,8 +1471,6 @@ export default function App() {
             onDashboardClick={() => {
               setViewMode("login");
             }}
-            annualBilling={annualBilling}
-            setAnnualBilling={setAnnualBilling}
           />
 
           {/* FAQ ACCORDION SECTION */}
@@ -1530,8 +1531,6 @@ export default function App() {
               setViewMode("dashboard");
               setActiveTab("home");
             }}
-            annualBilling={annualBilling}
-            setAnnualBilling={setAnnualBilling}
             hideFreePlan={true}
           />
         </div>
@@ -1627,12 +1626,12 @@ export default function App() {
                       freeScansUsed={freeScansUsed}
                     />
                     
-                    {plan === "free" && (
+                    {(plan === "free" || plan === "starter") && (
                       <div className="mt-4 text-center">
                         <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-full text-xs font-bold text-slate-300 shadow-sm">
-                          <span className="text-[#00FF88]">📸</span> Scans gratuits restants : <span className="text-white">{Math.max(0, 5 - freeScansUsed)}/5</span>
+                          <span className="text-[#00FF88]">📸</span> Scans {plan === "starter" ? "Starter" : "gratuits"} restants : <span className="text-white">{Math.max(0, (plan === "starter" ? 20 : 5) - freeScansUsed)}/{plan === "starter" ? 20 : 5}</span>
                         </span>
-                        {freeScansUsed >= 5 && (
+                        {freeScansUsed >= (plan === "starter" ? 20 : 5) && (
                           <div className="mt-2 block">
                             <button onClick={() => setShowPaywall(true)} className="text-[10px] text-[#00FF88] hover:underline underline-offset-2 uppercase tracking-wide font-bold">Débloquer Pro →</button>
                           </div>
@@ -2201,17 +2200,56 @@ export default function App() {
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left mt-6">
-                {/* PRO PLAN */}
+                {/* STARTER PLAN */}
                 <div className="bg-[#141414] border border-[#2a2a2a] p-5 rounded-3xl hover:border-[#00FF88]/50 transition-colors flex flex-col justify-between group">
                   <div>
-                     <h3 className="text-white font-bold text-lg mb-1 flex items-center gap-2">PRO <span className="bg-[#1a1a1a] text-slate-400 text-[10px] px-2 py-0.5 rounded-full border border-[#222]">6.99€/m</span></h3>
+                     <h3 className="text-white font-bold text-lg mb-1 flex items-center gap-2">STARTER <span className="bg-[#1a1a1a] text-slate-400 text-[10px] px-2 py-0.5 rounded-full border border-[#222]">0.90€/m</span></h3>
                      <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-4 border-b border-[#2a2a2a] pb-3 block">
-                       ☕ Moins qu'un café par semaine
+                       L'essentiel pour bien manger
+                     </p>
+                     <ul className="space-y-2 mb-6">
+                       <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> Scans basiques</li>
+                       <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> Calories & Macros</li>
+                     </ul>
+                  </div>
+                  <button 
+                    onClick={async () => {
+                      try {
+                        const res = await fetch("/api/checkout-session", {
+                          method: "POST", headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ priceId: "starter", userId: userId || "anonymous", customer_email: profileEmail || undefined })
+                        });
+                        
+                        if (!res.ok) {
+                          const errorData = await res.text();
+                          throw new Error(`Erreur réseau: ${res.status} ${errorData}`);
+                        }
+                        
+                        const data = await res.json();
+                        if (data.url) window.location.href = data.url;
+                      } catch (e: any) {
+                         console.error("Stripe Error Details:", e);
+                         alert("Erreur de connexion avec Stripe. Veuillez vérifier votre réseau ou contacter le support.");
+                      }
+                    }}
+                    className="w-full bg-[#1a1a1a] border border-[#222] group-hover:border-[#00FF88]/30 group-hover:bg-[#00FF88]/10 text-white py-2.5 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1">
+                    Choisir Starter
+                  </button>
+                </div>
+
+                {/* PREMIUM PLAN */}
+                <div className="bg-gradient-to-b from-[#1c2820] to-[#141414] border border-[#00FF88]/30 p-5 rounded-3xl hover:border-[#00FF88]/60 transition-colors flex flex-col justify-between group relative overflow-hidden">
+                  <div className="absolute top-0 right-0 py-1 px-3 bg-[#00FF88]/20 text-[#00FF88] text-[9px] font-bold uppercase tracking-widest rounded-bl-xl border-l border-b border-[#00FF88]/30">Recommandé</div>
+                  <div>
+                     <h3 className="text-white font-bold text-lg mb-1 flex items-center gap-2">PREMIUM <span className="bg-[#1a1a1a] text-slate-400 text-[10px] px-2 py-0.5 rounded-full border border-[#222]">6.99€/m</span></h3>
+                     <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-4 border-b border-[#2a2a2a] pb-3 block">
+                       🏆 Accès Total
                      </p>
                      <ul className="space-y-2 mb-6">
                        <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> Scans illimités</li>
-                       <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> Analyse complète</li>
-                       <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> Coach poulpe</li>
+                       <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> Alerte Toxique</li>
+                       <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> alternatives saines</li>
+                       <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> Coach IA Complet</li>
                      </ul>
                   </div>
                   <button 
@@ -2234,56 +2272,14 @@ export default function App() {
                          alert("Erreur de connexion avec Stripe. Veuillez vérifier votre réseau ou contacter le support.");
                       }
                     }}
-                    className="w-full bg-[#1a1a1a] border border-[#222] group-hover:border-[#00FF88]/30 group-hover:bg-[#00FF88]/10 text-[#00FF88] py-2.5 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1">
-                    Essayer Pro gratuit 7 jours <span className="group-hover:translate-x-1 transition-transform">→</span>
-                  </button>
-                </div>
-
-                {/* EXPERT PLAN */}
-                <div className="bg-gradient-to-b from-[#1c1228] to-[#141414] border border-[#a855f7]/30 p-5 rounded-3xl hover:border-[#a855f7]/60 transition-colors flex flex-col justify-between group relative overflow-hidden">
-                  <div className="absolute top-0 right-0 py-1 px-3 bg-[#a855f7]/20 text-[#a855f7] text-[9px] font-bold uppercase tracking-widest rounded-bl-xl border-l border-b border-[#a855f7]/30">Le plus choisi</div>
-                  <div>
-                     <h3 className="text-white font-bold text-lg mb-1 flex items-center gap-2">EXPERT <span className="bg-[#1a1a1a] text-slate-400 text-[10px] px-2 py-0.5 rounded-full border border-[#222]">14.99€/m</span></h3>
-                     <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-4 border-b border-[#2a2a2a] pb-3 block">
-                       🍽️ Moins qu'un repas au restaurant
-                     </p>
-                     <ul className="space-y-2 mb-6">
-                       <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#a855f7]">✓</span> Tout Pro +</li>
-                       <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#a855f7]">✓</span> Suivi photos évolution</li>
-                       <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#a855f7]">✓</span> Plan alimentaire IA</li>
-                     </ul>
-                  </div>
-                  <button 
-                    onClick={async () => {
-                      try {
-                        const res = await fetch("/api/checkout-session", {
-                          method: "POST", headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ priceId: "price_1TcVHFIcQouyQI6KSdytzdTQ", userId: userId || "anonymous", customer_email: profileEmail || undefined })
-                        });
-                        
-                        if (!res.ok) {
-                          const errorData = await res.text();
-                          throw new Error(`Erreur réseau: ${res.status} ${errorData}`);
-                        }
-                        
-                        const data = await res.json();
-                        if (data.url) window.location.href = data.url;
-                      } catch (e: any) {
-                         console.error("Stripe Error Details:", e);
-                         alert("Erreur de connexion avec Stripe. Veuillez vérifier votre réseau ou contacter le support.");
-                      }
-                    }}
-                    className="w-full bg-[#a855f7] text-white py-2.5 rounded-xl font-bold text-xs shadow-[0_0_15px_rgba(168,85,247,0.3)] flex items-center justify-center gap-1 active:scale-95 transition-all">
-                    Essayer Expert gratuit 7 jours <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    className="w-full bg-[#00FF88] text-black py-2.5 rounded-xl font-bold text-xs shadow-[0_0_15px_rgba(0,255,136,0.3)] flex items-center justify-center gap-1 active:scale-95 transition-all">
+                    Démarrer mes 7 jours gratuits <span className="group-hover:translate-x-1 transition-transform">→</span>
                   </button>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-[#2a2a2a] flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="pt-4 border-t border-[#2a2a2a] flex flex-col sm:flex-row items-center justify-center gap-4">
                  <p className="text-[11px] text-slate-500 font-medium">7 jours gratuits • Sans engagement • Annulation en 1 clic</p>
-                 <button onClick={() => setShowPaywall(false)} className="text-xs text-slate-400 hover:text-white transition-colors underline underline-offset-2">
-                   Continuer avec accès limité →
-                 </button>
               </div>
 
             </div>

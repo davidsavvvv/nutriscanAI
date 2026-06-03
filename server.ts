@@ -41,9 +41,13 @@ async function startServer() {
 
   app.post("/api/checkout-session", async (req, res) => {
     try {
-      const { priceId, userId, customer_email } = req.body;
+      let { priceId, userId, customer_email } = req.body;
       const stripe = getStripe();
       
+      if (priceId === "starter" && process.env.STRIPE_STARTER_PRICE_ID) {
+        priceId = process.env.STRIPE_STARTER_PRICE_ID;
+      }
+
       const payload: any = {
         payment_method_types: ["card"],
         line_items: [
@@ -128,9 +132,11 @@ async function startServer() {
             const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
             const priceId = subscription.items.data[0].price.id;
             
+            const starterPriceId = process.env.STRIPE_STARTER_PRICE_ID;
             let plan = "free";
             if (priceId === "price_1TcVGlIcQouyQI6K6uttG2JD") plan = "pro";
             if (priceId === "price_1TcVHFIcQouyQI6KSdytzdTQ") plan = "expert";
+            if (starterPriceId && priceId === starterPriceId) plan = "starter";
             
             await supabaseAdmin
                 .from("subscriptions")
@@ -146,9 +152,11 @@ async function startServer() {
         const subscription = event.data.object as Stripe.Subscription;
         
         const priceId = subscription.items.data[0].price.id;
+        const starterPriceId = process.env.STRIPE_STARTER_PRICE_ID;
         let plan = "free";
         if (priceId === "price_1TcVGlIcQouyQI6K6uttG2JD") plan = "pro";
         if (priceId === "price_1TcVHFIcQouyQI6KSdytzdTQ") plan = "expert";
+        if (starterPriceId && priceId === starterPriceId) plan = "starter";
 
         await supabaseAdmin
             .from("subscriptions")
