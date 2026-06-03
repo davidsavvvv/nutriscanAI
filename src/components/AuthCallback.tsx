@@ -12,11 +12,12 @@ export function AuthCallback() {
       try {
         if (!session?.user?.id) return;
 
+        // On vérifie l'abonnement
         const { data: profData, error: profError } = await supabase
           .from('profiles')
-          .select('subscription_status, is_admin')
+          .select('subscription_status')
           .eq('id', session.user.id)
-          .single();
+          .maybeSingle();
 
         if (profError) {
           console.error("Profile fetch error:", profError);
@@ -28,13 +29,15 @@ export function AuthCallback() {
         }
 
         const status = profData?.subscription_status;
-        const isAdmin = profData?.is_admin === true;
         
-        // Si is_admin = true OU subscription_status est expert/pro/starter → rediriger vers /scanner
-        // Sinon → rediriger vers /pricing
-        if (isAdmin || ['active', 'trialing', 'pro', 'expert', 'starter'].includes(status)) {
+        // Si subscription_status est null ou vide → rediriger vers /pricing
+        // Si subscription_status est pro, expert ou starter (ou active/trialing) → rediriger vers /scanner
+        if (!status || status === "") {
+          window.location.href = "/pricing";
+        } else if (['active', 'trialing', 'pro', 'expert', 'starter'].includes(status)) {
           window.location.href = "/scanner";
         } else {
+          // Fallback par défaut
           window.location.href = "/pricing";
         }
       } catch (err: any) {
