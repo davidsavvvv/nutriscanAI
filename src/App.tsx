@@ -12,7 +12,6 @@ import { TestimonialsSection } from "./components/TestimonialsSection";
 import { PricingSection } from "./components/PricingSection";
 import { FAQSection } from "./components/FAQSection";
 import ScanResultPanel from "./components/ScanResultPanel";
-import CoachPanel from "./components/CoachPanel";
 import { supabase } from "./lib/supabase";
 import { 
   Sparkles, ShieldCheck, Zap, Layers, Trophy, Flame, Camera, Upload, 
@@ -39,7 +38,7 @@ export default function App() {
   );
   
   // Sidebar tab index for dashboard
-  const [activeTab, setActiveTab] = useState<"home" | "history" | "upgrade">("home");
+  const [activeTab, setActiveTab] = useState<string>("home");
   
   // Onboarding Active Flow state
   const [boardingActive, setBoardingActive] = useState(false);
@@ -1584,7 +1583,6 @@ export default function App() {
                 {[
                   { id: "home", label: "📸 Scanner", icon: <Camera className="w-4 h-4" /> },
                   { id: "history", label: "📊 Historique", icon: <Calendar className="w-4 h-4" /> },
-                  { id: "coach", label: "🐙 Coach", icon: <MessageSquare className="w-4 h-4" /> },
                   { id: "profile", label: "👤 Profil", icon: <CreditCard className="w-4 h-4" /> }
                 ].map((item) => {
                   const active = activeTab === item.id;
@@ -1952,13 +1950,6 @@ export default function App() {
                   );
               })()}
 
-              {/* TAB 4: COACH PANEL */}
-              {activeTab === "coach" && (
-                <div className="animate-fade-in">
-                  <CoachPanel history={history} plan={plan} onUnlockExpert={() => setShowPaywall(true)} />
-                </div>
-              )}
-
               {/* TAB 5: PROFILE / PREMIUM */}
               {activeTab === "profile" && (
                 <div className="space-y-8 animate-fade-in text-center">
@@ -2022,8 +2013,8 @@ export default function App() {
                   <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#00d4aa]"></span>
                 </span>
                 <div>
-                  <h4 className="text-xs font-extrabold text-white block">Scan My Macro Coach</h4>
-                  <span className="text-[9px] text-slate-400">Online 24/7 • David & Marcus Assistance</span>
+                  <h4 className="text-xs font-extrabold text-white block">Support Scan My Macro</h4>
+                  <span className="text-[9px] text-slate-400">Online 24/7 • Équipe d'assistance</span>
                 </div>
               </div>
               <button onClick={() => setShowSupportBot(false)} className="text-slate-500 hover:text-white">
@@ -2155,24 +2146,19 @@ export default function App() {
       {viewMode === "dashboard" && (
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0d0d0d]/95 backdrop-blur-md border-t border-[#2a2a2a] z-50 px-6 flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.8)] pb-safe-offset" style={{ paddingBottom: "env(safe-area-inset-bottom, 1rem)", height: "calc(60px + env(safe-area-inset-bottom, 0px))" }}>
           
-          <button onClick={() => { setActiveTab("home"); }} className="flex flex-col items-center justify-center relative active:scale-95 transition-transform" style={{ width: '25%' }}>
+          <button onClick={() => { setActiveTab("home"); }} className="flex flex-col items-center justify-center relative active:scale-95 transition-transform" style={{ width: '33%' }}>
             <div className={`absolute -bottom-[16px] h-[64px] w-[64px] rounded-full flex items-center justify-center border-4 border-[#0d0d0d] shadow-[0_0_20px_rgba(0,255,136,0.2)] ${activeTab === 'home' ? 'bg-[#00FF88]' : 'bg-[#1a1a1a] border-[#2a2a2a]'}`}>
               <span className="text-3xl">📸</span>
             </div>
             <span className={`text-[10px] font-bold mt-[26px] ${activeTab === "home" ? "text-[#00FF88]" : "text-slate-400"}`}>Scanner</span>
           </button>
 
-          <button onClick={() => { setActiveTab("history"); }} className={`flex flex-col items-center justify-center p-2 w-[25%] ${activeTab === "history" ? "text-[#00FF88]" : "text-slate-400"}`}>
+          <button onClick={() => { setActiveTab("history"); }} className={`flex flex-col items-center justify-center p-2 w-[33%] ${activeTab === "history" ? "text-[#00FF88]" : "text-slate-400"}`}>
             <span className="text-[22px] leading-none mb-1">📊</span>
             <span className="text-[10px] font-bold">Historique</span>
           </button>
 
-          <button onClick={() => { setActiveTab("coach"); }} className={`flex flex-col items-center justify-center p-2 w-[25%] ${activeTab === "coach" ? "text-[#00FF88]" : "text-slate-400"}`}>
-            <span className="text-[22px] leading-none mb-1">🐙</span>
-            <span className="text-[10px] font-bold">Coach</span>
-          </button>
-
-          <button onClick={() => { setActiveTab("profile"); }} className={`flex flex-col items-center justify-center p-2 w-[25%] ${activeTab === "profile" ? "text-[#00FF88]" : "text-slate-400"}`}>
+          <button onClick={() => { setActiveTab("profile"); }} className={`flex flex-col items-center justify-center p-2 w-[33%] ${activeTab === "profile" ? "text-[#00FF88]" : "text-slate-400"}`}>
             <span className="text-[22px] leading-none mb-1">👤</span>
             <span className="text-[10px] font-bold">Profil</span>
           </button>
@@ -2267,7 +2253,7 @@ export default function App() {
                        <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> Scans illimités</li>
                        <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> Alerte Toxique</li>
                        <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> alternatives saines</li>
-                       <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> Coach IA Complet</li>
+                       <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> Analyse IA Complète</li>
                      </ul>
                   </div>
                   <button 

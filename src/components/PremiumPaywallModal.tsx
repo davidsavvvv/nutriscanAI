@@ -171,9 +171,8 @@ export default function PremiumPaywallModal({ onClose, userId, userEmail, curren
                   { text: "Scans classiques", type: "check" },
                   { text: "Analyse Macros", type: "check" },
                   { text: "Objectif calorique", type: "check" },
-                  { text: "Coach poulpe basique", type: "check" },
-                  { text: "Alertes Toxinques", type: "cross-blur" },
-                  { text: "Coach IA Complet", type: "cross-blur" }
+                  { text: "Alertes Toxiques", type: "cross-blur" },
+                  { text: "Analyse approfondie IA", type: "cross-blur" }
                 ].map((feat, i) => (
                   <li key={i} className={`flex items-start gap-3 text-sm font-medium leading-tight ${feat.type === 'cross-blur' ? 'text-slate-500 opacity-50 blur-[2px] select-none scale-95' : 'text-slate-300'}`}>
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${feat.type === 'cross-blur' ? 'bg-rose-500/10' : 'bg-[#00FF88]/20'}`}>
@@ -244,7 +243,7 @@ export default function PremiumPaywallModal({ onClose, userId, userEmail, curren
                 "Scans illimités (Assiettes & Codes Barres)",
                 "Alerte Toxique (Additifs nocifs)",
                 "Alternatives saines en temps réel",
-                "IA Coach Nutrition",
+                "Analyse Complète Nutritionnelle",
                 "Support prioritaire 24/7"
               ].map((feat, i) => (
                 <li key={i} className="flex items-start gap-3 text-slate-300 text-sm font-medium leading-tight">

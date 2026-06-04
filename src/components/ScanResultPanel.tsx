@@ -111,7 +111,7 @@ export default function ScanResultPanel({ result, onClear, plan = "free", onUnlo
               <span className="text-2xl group-hover:animate-ping filter drop-shadow">🔒</span>
               <div className="text-left flex flex-col">
                  <span className="text-sm font-bold text-white leading-tight mb-1">Analyse approfondie absente</span>
-                 <span className="text-xs text-slate-400">Vitamines, additifs toxiques, coaching...</span>
+                 <span className="text-xs text-slate-400">Vitamines, additifs toxiques...</span>
               </div>
            </div>
            <span className="bg-[#00FF88] text-black font-extrabold text-[10px] uppercase font-mono px-3 py-1.5 rounded-md shadow-sm">Débloquer</span>

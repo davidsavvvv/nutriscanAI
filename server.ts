@@ -355,9 +355,14 @@ Return the response EXACTLY in this JSON format mapping exactly to the concepts 
 
     } catch (err: any) {
       console.error("AI Scan Error:", err);
+      let userMessage = err.message || "An unexpected error occurred during item analysis.";
+      if (userMessage.includes("quota has been exceeded") || userMessage.includes("429")) {
+         userMessage = "Le quota de l'API Google Gemini est dépassé (limite de requêtes gratuites atteinte). Veuillez patienter une minute ou vérifier votre clé API.";
+      }
+      
       return res.status(500).json({
         error: "Scanning failed",
-        message: err.message || "An unexpected error occurred during item analysis.",
+        message: userMessage,
       });
     }
   });
@@ -432,9 +437,14 @@ Return the response EXACTLY in this JSON format:
 
     } catch (err: any) {
       console.error("Coach API Error:", err);
+      let userMessage = err.message || "An unexpected error occurred.";
+      if (userMessage.includes("quota has been exceeded") || userMessage.includes("429")) {
+         userMessage = "Le quota de l'API Google Gemini est dépassé (limite de requêtes gratuites atteinte). Veuillez patienter une minute ou vérifier votre clé API.";
+      }
+
       return res.status(500).json({
         error: "Coaching failed",
-        message: err.message || "An unexpected error occurred.",
+        message: userMessage,
       });
     }
   });
@@ -528,9 +538,14 @@ Sois toujours positif, motivant et bienveillant. Jamais de jugement négatif sur
 
     } catch (err: any) {
       console.error("Coach Selfie API Error:", err);
+      let userMessage = err.message || "An unexpected error occurred.";
+      if (userMessage.includes("quota has been exceeded") || userMessage.includes("429")) {
+         userMessage = "Le quota de l'API Google Gemini est dépassé (limite de requêtes gratuites atteinte). Veuillez patienter une minute ou vérifier votre clé API.";
+      }
+
       return res.status(500).json({
         error: "Selfie Analysis failed",
-        message: err.message || "An unexpected error occurred.",
+        message: userMessage,
       });
     }
   });
