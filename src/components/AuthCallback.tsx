@@ -15,7 +15,7 @@ export function AuthCallback() {
         // On vérifie l'abonnement
         const { data: profData, error: profError } = await supabase
           .from('profiles')
-          .select('subscription_status, is_admin')
+          .select('subscription_status')
           .eq('id', session.user.id)
           .maybeSingle();
 
@@ -29,11 +29,12 @@ export function AuthCallback() {
         }
 
         const status = profData?.subscription_status;
-        const isAdmin = profData?.is_admin;
         
         // Si subscription_status est null ou vide → rediriger vers /pricing
         // Si subscription_status est pro, expert ou starter (ou active/trialing) → rediriger vers /scanner
-        if (isAdmin || ['active', 'trialing', 'pro', 'expert', 'starter'].includes(status)) {
+        if (!status || status === "") {
+          window.location.href = "/pricing";
+        } else if (['active', 'trialing', 'pro', 'expert', 'starter'].includes(status)) {
           window.location.href = "/scanner";
         } else {
           // Fallback par défaut
