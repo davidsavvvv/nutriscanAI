@@ -285,8 +285,10 @@ export default function App() {
             setViewMode("dashboard");
             setActiveTab("home");
           } else {
-            window.history.replaceState(null, "", "/pricing");
-            setViewMode("pricing");
+            if (window.location.pathname === "/scanner" || window.location.hash.includes("access_token") || window.location.pathname === "/auth/confirm" || window.location.pathname === "/login") {
+              window.history.replaceState(null, "", "/pricing");
+              setViewMode("pricing");
+            }
           }
         } else {
           if (window.location.pathname === "/auth/confirm") {
@@ -330,8 +332,10 @@ export default function App() {
             setViewMode("dashboard");
             setActiveTab("home");
           } else {
-            window.history.replaceState(null, "", "/pricing");
-            setViewMode("pricing");
+            if (window.location.pathname === "/scanner" || window.location.hash.includes("access_token") || window.location.pathname === "/auth/confirm" || window.location.pathname === "/login") {
+              window.history.replaceState(null, "", "/pricing");
+              setViewMode("pricing");
+            }
           }
         })();
       }
@@ -492,8 +496,16 @@ export default function App() {
     };
     localStorage.setItem("ns_profile_active", JSON.stringify(profile));
     setBoardingActive(false);
-    setViewMode("dashboard");
-    setActiveTab("home");
+    
+    // Après onboarding 1-12, si on n'a pas de plan, on va sur /pricing
+    if (!['pro', 'expert', 'starter'].includes(plan) && plan !== 'expert') { // Davids account matches 'expert'
+      window.history.replaceState(null, "", "/pricing");
+      setViewMode("pricing");
+    } else {
+      window.history.replaceState(null, "", "/scanner");
+      setViewMode("dashboard");
+      setActiveTab("home");
+    }
   };
 
   const resetOnboarding = () => {
