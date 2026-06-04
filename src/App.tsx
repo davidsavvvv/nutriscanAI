@@ -154,7 +154,7 @@ export default function App() {
       try {
         const { data: profData, error: profError } = await supabase
           .from('profiles')
-          .select('subscription_status, free_scans_used')
+          .select('subscription_status, free_scans_used, is_admin')
           .eq('id', uid)
           .maybeSingle();
           
@@ -168,10 +168,11 @@ export default function App() {
 
         if (profData) {
           const status = profData.subscription_status;
-          if (status === 'active' || status === 'trialing' || status === 'starter' || status === 'pro' || status === 'expert') {
+          const isAdmin = profData.is_admin;
+          if (isAdmin || status === 'active' || status === 'trialing' || status === 'starter' || status === 'pro' || status === 'expert') {
              hasActivePlan = true;
-             // Si c'est juste 'active'/'trialing', on suppose pro par défaut (legacy fallback), sinon on prend la valeur
-             setPlan((status === 'active' || status === 'trialing') ? "pro" : status);
+             // Si admin on met expert par défaut, sinon selon status
+             setPlan(isAdmin ? "expert" : (status === 'active' || status === 'trialing') ? "pro" : status);
           } else {
              setPlan("free");
           }
