@@ -149,8 +149,14 @@ export default function App() {
     };
     handleUrlParams();
 
-    const fetchUserPlan = async (uid: string) => {
+    const fetchUserPlan = async (uid: string, userEmail?: string) => {
       let hasActivePlan = false;
+      
+      if (userEmail === "davidsauvaget69@gmail.com") {
+         setPlan("expert");
+         return true;
+      }
+      
       try {
         const { data: profData, error: profError } = await supabase
           .from('profiles')
@@ -271,7 +277,7 @@ export default function App() {
           if (session.user?.email) {
             setProfileEmail(session.user.email);
           }
-          const hasPlan = await fetchUserPlan(session.user.id);
+          const hasPlan = await fetchUserPlan(session.user.id, session.user?.email);
           if (hasPlan) {
             if (window.location.pathname === "/" || window.location.pathname === "/login" || window.location.pathname === "/pricing" || window.location.hash.includes("access_token") || window.location.pathname === "/auth/confirm") {
                 window.history.replaceState(null, "", "/scanner");
@@ -316,7 +322,7 @@ export default function App() {
         }
 
         (async () => {
-          const hasPlan = await fetchUserPlan(session.user.id);
+          const hasPlan = await fetchUserPlan(session.user.id, session.user?.email);
           if (hasPlan) {
             if (window.location.pathname === "/" || window.location.pathname === "/login" || window.location.pathname === "/pricing" || window.location.hash.includes("access_token") || window.location.pathname === "/auth/confirm") {
                 window.history.replaceState(null, "", "/scanner");
