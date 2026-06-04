@@ -5,8 +5,6 @@ import { motion } from "motion/react";
 interface PricingSectionProps {
   onUpgradeClick: (priceId?: string) => void;
   onDashboardClick: () => void;
-  annualBilling: boolean;
-  setAnnualBilling: (val: boolean) => void;
   hideFreePlan?: boolean;
 }
 
@@ -77,7 +75,7 @@ export function PricingSection({ onUpgradeClick, onDashboardClick, hideFreePlan 
                 <li className="flex items-start gap-3"><Check className="text-[#00FF88] w-5 h-5 shrink-0" /> <span><strong>Scans illimités</strong> (Assiettes & Codes Barres)</span></li>
                 <li className="flex items-start gap-3"><Check className="text-[#00FF88] w-5 h-5 shrink-0" /> <span><strong>Alerte Toxique</strong> (Édulcorants, additifs nocifs)</span></li>
                 <li className="flex items-start gap-3"><Check className="text-[#00FF88] w-5 h-5 shrink-0" /> <span>Alternatives saines proposées en temps réel</span></li>
-                <li className="flex items-start gap-3"><Check className="text-[#00FF88] w-5 h-5 shrink-0" /> <span>Recalcul automatique de vos objectifs</span></li>
+                <li className="flex items-start gap-3"><Check className="text-[#00FF88] w-5 h-5 shrink-0" /> <span>IA Coach Nutrition (Recalcul automatique)</span></li>
               </ul>
             </div>
             <button 

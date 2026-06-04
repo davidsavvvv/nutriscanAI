@@ -12,6 +12,7 @@ import { TestimonialsSection } from "./components/TestimonialsSection";
 import { PricingSection } from "./components/PricingSection";
 import { FAQSection } from "./components/FAQSection";
 import ScanResultPanel from "./components/ScanResultPanel";
+import CoachPanel from "./components/CoachPanel";
 import { supabase } from "./lib/supabase";
 import { 
   Sparkles, ShieldCheck, Zap, Layers, Trophy, Flame, Camera, Upload, 
@@ -66,6 +67,7 @@ export default function App() {
   const [profileFat, setProfileFat] = useState(0);
   const [profileCarbs, setProfileCarbs] = useState(0);
   const [profileEmail, setProfileEmail] = useState<string>("");
+  const [profileName, setProfileName] = useState<string>("");
   const [plan, setPlan] = useState<string>("free");
   const [freeScansUsed, setFreeScansUsed] = useState<number>(0);
   const [showPaywall, setShowPaywall] = useState<boolean>(false);
@@ -276,6 +278,11 @@ export default function App() {
           if (session.user?.email) {
             setProfileEmail(session.user.email);
           }
+          if (session.user?.user_metadata) {
+            const m = session.user.user_metadata;
+            const name = m.first_name || m.name || m.full_name || m.prenom || "";
+            if (name) setProfileName(name);
+          }
           const hasPlan = await fetchUserPlan(session.user.id, session.user?.email);
           if (hasPlan) {
             if (window.location.pathname === "/" || window.location.pathname === "/login" || window.location.pathname === "/pricing" || window.location.hash.includes("access_token") || window.location.pathname === "/auth/confirm") {
@@ -316,6 +323,11 @@ export default function App() {
         setUserId(session.user.id);
         if (session.user?.email) {
             setProfileEmail(session.user.email);
+        }
+        if (session.user?.user_metadata) {
+            const m = session.user.user_metadata;
+            const name = m.first_name || m.name || m.full_name || m.prenom || "";
+            if (name) setProfileName(name);
         }
         
         if (window.location.pathname === "/auth/callback") {
@@ -716,7 +728,7 @@ export default function App() {
                 Scan My Macro
               </span>
               <p className="text-[9px] font-mono text-slate-400 tracking-wider font-semibold uppercase leading-none">
-                Clinical Diet Processor
+                Analyse nutritionnelle
               </p>
             </div>
           </div>
@@ -789,7 +801,7 @@ export default function App() {
                 }}
                 className="text-xs border border-[#2a2a2a] hover:bg-white/5 text-slate-300 font-bold px-4 py-2 rounded-full transition-all"
               >
-                Sign Out / Exit Dashboard
+                Se déconnecter
               </button>
             )}
           </div>
@@ -1572,7 +1584,7 @@ export default function App() {
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="inline-flex w-1.5 h-1.5 bg-[#00d4aa] rounded-full" />
                     <span className="text-[10px] font-mono text-[#00d4aa] uppercase font-bold tracking-wider">
-                      {isPremiumUser ? "PRO ACTIVE" : "FREE SANDBOX"}
+                      {['pro', 'expert', 'starter', 'active', 'trialing'].includes(plan) ? "PRO" : "Gratuit"}
                     </span>
                   </div>
                 </div>
@@ -1583,6 +1595,7 @@ export default function App() {
                 {[
                   { id: "home", label: "📸 Scanner", icon: <Camera className="w-4 h-4" /> },
                   { id: "history", label: "📊 Historique", icon: <Calendar className="w-4 h-4" /> },
+                  { id: "coach", label: "🐙 Coach", icon: <MessageSquare className="w-4 h-4" /> },
                   { id: "profile", label: "👤 Profil", icon: <CreditCard className="w-4 h-4" /> }
                 ].map((item) => {
                   const active = activeTab === item.id;
@@ -1612,7 +1625,7 @@ export default function App() {
                   onClick={resetOnboarding}
                   className="w-full text-center text-[11px] font-semibold text-slate-500 hover:text-[#00d4aa] border border-[#2a2a2a] py-2 rounded-xl transition-colors block"
                 >
-                  ⚙️ Recalibrate Profile Goals
+                  ⚙️ Recalibrer mes objectifs
                 </button>
               </div>
 
@@ -1628,7 +1641,7 @@ export default function App() {
                   {/* Welcome Message */}
                   <div className="pt-2 pb-4">
                     <h2 className="text-2xl font-extrabold text-white font-display">
-                      Bonjour {localStorage.getItem("ns_boarding_name") || "👋"}
+                      Bonjour {profileName || localStorage.getItem("ns_boarding_name") ? `${profileName || localStorage.getItem("ns_boarding_name")} 👋` : "👋"}
                     </h2>
                   </div>
 
@@ -1950,45 +1963,37 @@ export default function App() {
                   );
               })()}
 
+              {/* TAB 4: COACH PANEL */}
+              {activeTab === "coach" && (
+                <div className="animate-fade-in">
+                  <CoachPanel history={history} plan={plan} onUnlockExpert={() => setShowPaywall(true)} />
+                </div>
+              )}
+
               {/* TAB 5: PROFILE / PREMIUM */}
               {activeTab === "profile" && (
                 <div className="space-y-8 animate-fade-in text-center">
                   
                   <div className="bg-[#141414] border border-[#2a2a2a] p-8 sm:p-12 rounded-[32px] space-y-6 max-w-2xl mx-auto">
                     <span className="text-xs font-bold font-mono uppercase bg-[#7c3aed]/15 border border-[#7c3aed]/25 text-[#c084fc] px-3.5 py-1.5 rounded-full inline-block">
-                      ⚙️ Subscription Simulator Status
+                      Profil
                     </span>
-                    <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Active Plan Status Dashboard</h3>
+                    <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Espace Membre</h3>
                     
                     <div className="p-6 bg-[#181818] border border-slate-800 rounded-2xl max-w-md mx-auto space-y-3 text-left">
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-400">Current active credential:</span>
-                        <span className="text-[#00d4aa] font-extrabold">{isPremiumUser ? "PRO ACTIVE MEMBERSHIP" : "FREE SANDBOX TESTER"}</span>
+                        <span className="text-slate-400">Statut du compte:</span>
+                        <span className="text-[#00d4aa] font-extrabold">{['pro', 'expert', 'starter', 'active', 'trialing'].includes(plan) ? "PRO ACTIVE" : "Gratuit"}</span>
                       </div>
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-400">Connected account:</span>
-                        <span className="text-white font-bold font-mono">{profileEmail || "No Email"}</span>
+                        <span className="text-slate-400">Email:</span>
+                        <span className="text-white font-bold font-mono">{profileEmail || "Non renseigné"}</span>
                       </div>
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-400">Calculated formula suggestion parameters:</span>
-                        <span className="text-white font-mono">{profileGoals.join(", ") || "General health setup"}</span>
+                        <span className="text-slate-400">Objectifs:</span>
+                        <span className="text-white font-mono truncate max-w-[150px]">{profileGoals.join(", ") || "Général"}</span>
                       </div>
                     </div>
-
-                    <div className="pt-2">
-                      <button
-                        onClick={() => {
-                          setIsPremiumUser(!isPremiumUser);
-                        }}
-                        className="bg-[#00d4aa] text-black font-extrabold text-xs uppercase tracking-wider px-6 py-3.5 rounded-xl block mx-auto hover:brightness-110 active:scale-95 transition-all w-fit"
-                      >
-                        {isPremiumUser ? "Deactivate Simulated PRO Plan" : "Activate Simulated PRO Plan Free"}
-                      </button>
-                    </div>
-
-                    <p className="text-[10px] text-slate-500 font-mono">
-                      *This is an integrated premium testing database switch to unlock priority alerts and infinite scans.
-                    </p>
                   </div>
 
                 </div>
@@ -2013,8 +2018,8 @@ export default function App() {
                   <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#00d4aa]"></span>
                 </span>
                 <div>
-                  <h4 className="text-xs font-extrabold text-white block">Support Scan My Macro</h4>
-                  <span className="text-[9px] text-slate-400">Online 24/7 • Équipe d'assistance</span>
+                  <h4 className="text-xs font-extrabold text-white block">Scan My Macro Coach</h4>
+                  <span className="text-[9px] text-slate-400">Online 24/7 • David & Marcus Assistance</span>
                 </div>
               </div>
               <button onClick={() => setShowSupportBot(false)} className="text-slate-500 hover:text-white">
@@ -2119,23 +2124,6 @@ export default function App() {
             </p>
           </div>
           
-          {/* App store mock downloads */}
-          <div className="flex flex-wrap gap-3 justify-center">
-            <button onClick={() => alert("Redirecting to Google Play sandbox...")} className="bg-[#141414] border border-slate-800 hover:border-slate-700 hover:bg-[#1a1a1a] px-4 py-2 rounded-xl text-left transition-all flex items-center gap-2">
-              <span className="text-lg">🤖</span>
-              <div>
-                <span className="text-[9px] text-slate-400 block font-bold leading-none uppercase">Get it on</span>
-                <span className="text-xs font-black text-white">Google Play</span>
-              </div>
-            </button>
-            <button onClick={() => alert("Redirecting to Apple Store sandbox...")} className="bg-[#141414] border border-slate-800 hover:border-slate-700 hover:bg-[#1a1a1a] px-4 py-2 rounded-xl text-left transition-all flex items-center gap-2">
-              <span className="text-lg">🍎</span>
-              <div>
-                <span className="text-[9px] text-slate-400 block font-bold leading-none uppercase">Download on</span>
-                <span className="text-xs font-black text-white">App Store</span>
-              </div>
-            </button>
-          </div>
         </div>
         <div className="text-[10px] text-slate-600 font-mono uppercase tracking-widest pt-4 border-t border-[#1a1a1a]">
           © 2026 SCAN MY MACRO SAAS INC. CLINIC METRIC ANALYSIS CLUSTER. ALL RIGHTS RESERVED.
@@ -2146,19 +2134,24 @@ export default function App() {
       {viewMode === "dashboard" && (
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0d0d0d]/95 backdrop-blur-md border-t border-[#2a2a2a] z-50 px-6 flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.8)] pb-safe-offset" style={{ paddingBottom: "env(safe-area-inset-bottom, 1rem)", height: "calc(60px + env(safe-area-inset-bottom, 0px))" }}>
           
-          <button onClick={() => { setActiveTab("home"); }} className="flex flex-col items-center justify-center relative active:scale-95 transition-transform" style={{ width: '33%' }}>
+          <button onClick={() => { setActiveTab("home"); }} className="flex flex-col items-center justify-center relative active:scale-95 transition-transform" style={{ width: '25%' }}>
             <div className={`absolute -bottom-[16px] h-[64px] w-[64px] rounded-full flex items-center justify-center border-4 border-[#0d0d0d] shadow-[0_0_20px_rgba(0,255,136,0.2)] ${activeTab === 'home' ? 'bg-[#00FF88]' : 'bg-[#1a1a1a] border-[#2a2a2a]'}`}>
               <span className="text-3xl">📸</span>
             </div>
             <span className={`text-[10px] font-bold mt-[26px] ${activeTab === "home" ? "text-[#00FF88]" : "text-slate-400"}`}>Scanner</span>
           </button>
 
-          <button onClick={() => { setActiveTab("history"); }} className={`flex flex-col items-center justify-center p-2 w-[33%] ${activeTab === "history" ? "text-[#00FF88]" : "text-slate-400"}`}>
+          <button onClick={() => { setActiveTab("history"); }} className={`flex flex-col items-center justify-center p-2 w-[25%] ${activeTab === "history" ? "text-[#00FF88]" : "text-slate-400"}`}>
             <span className="text-[22px] leading-none mb-1">📊</span>
             <span className="text-[10px] font-bold">Historique</span>
           </button>
 
-          <button onClick={() => { setActiveTab("profile"); }} className={`flex flex-col items-center justify-center p-2 w-[33%] ${activeTab === "profile" ? "text-[#00FF88]" : "text-slate-400"}`}>
+          <button onClick={() => { setActiveTab("coach"); }} className={`flex flex-col items-center justify-center p-2 w-[25%] ${activeTab === "coach" ? "text-[#00FF88]" : "text-slate-400"}`}>
+            <span className="text-[22px] leading-none mb-1">🐙</span>
+            <span className="text-[10px] font-bold">Coach</span>
+          </button>
+
+          <button onClick={() => { setActiveTab("profile"); }} className={`flex flex-col items-center justify-center p-2 w-[25%] ${activeTab === "profile" ? "text-[#00FF88]" : "text-slate-400"}`}>
             <span className="text-[22px] leading-none mb-1">👤</span>
             <span className="text-[10px] font-bold">Profil</span>
           </button>
@@ -2253,7 +2246,7 @@ export default function App() {
                        <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> Scans illimités</li>
                        <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> Alerte Toxique</li>
                        <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> alternatives saines</li>
-                       <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> Analyse IA Complète</li>
+                       <li className="text-xs text-slate-300 flex items-center gap-2"><span className="text-[#00FF88]">✓</span> Coach IA Complet</li>
                      </ul>
                   </div>
                   <button 
