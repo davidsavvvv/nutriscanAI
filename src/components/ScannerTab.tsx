@@ -366,11 +366,11 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading, pl
         <div className="absolute inset-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md rounded-[32px] flex flex-col justify-center items-center p-6 text-center shadow-2xl border border-white/10 animate-in fade-in zoom-in-95 duration-500 overflow-hidden">
           
           <motion.div 
-             className="w-32 h-32 mb-4 filter drop-shadow-xl"
+             className="w-20 h-20 mb-6 bg-rose-500/10 rounded-full flex justify-center items-center filter drop-shadow-xl"
              animate={{ rotate: [-3, 3, -3] }}
              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           >
-             <img src="/images/poulpe_triste.png" alt="Poulpe Triste" className="w-full h-full object-contain" />
+             <AlertCircle className="w-10 h-10 text-rose-500" />
           </motion.div>
 
           <h3 className="text-2xl font-black font-display text-white tracking-tight mb-2">

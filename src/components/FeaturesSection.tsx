@@ -1,70 +1,59 @@
-import { Layers, ScanBarcode, Beaker, Target, Droplet, Store } from "lucide-react";
+import { Camera, BrainCircuit, Activity } from "lucide-react";
 import { motion } from "motion/react";
 
 export function FeaturesSection() {
-  const features = [
+  const steps = [
     { 
-      t: "Reconnaissance Visuelle Instantanée", 
-      desc: "Prends ton assiette en photo. L'IA identifie chaque ingrédient, estime les poids et calcule tout instantanément avec une précision redoutable.",
-      icon: <Layers className="w-6 h-6" />
+      t: "1. Prends en photo", 
+      desc: "Une simple photo de votre assiette, de votre menu ou du code-barres de votre produit suffit.",
+      icon: <Camera className="w-6 h-6" />
     },
     { 
-      t: "Analyse Code-barres Mondiale", 
-      desc: "Accède à une base de données de plus de 10 millions de produits. Supermarchés, compléments sportifs, tout est analysé.",
-      icon: <ScanBarcode className="w-6 h-6" />
+      t: "2. L'IA analyse", 
+      desc: "Notre intelligence artificielle reconnaît les aliments, estime les portions et vérifie les listes d'ingrédients instantanément.",
+      icon: <BrainCircuit className="w-6 h-6" />
     },
     { 
-      t: "Traque des Additifs Toxiques", 
-      desc: "Édulcorants artificiels, épaississants inflammatoires, perturbateurs endocriniens. Ce que les industriels cachent, l'IA te le montre.",
-      icon: <Beaker className="w-6 h-6" />
-    },
-    { 
-      t: "Objectifs Sur-Mesure", 
-      desc: "Perte de poids, prise de masse ou santé globale. Tes calories et macros s'ajustent automatiquement à ton métabolisme.",
-      icon: <Target className="w-6 h-6" />
-    },
-    { 
-      t: "Suivi d'Hydratation Intelligent", 
-      desc: "Ne laisse plus ton corps s'assécher. Un suivi simple pour maintenir tes cellules et ton métabolisme au top.",
-      icon: <Droplet className="w-6 h-6" />
-    },
-    { 
-      t: "Scanner de Menu au Restaurant", 
-      desc: "Prends la carte en photo. L'IA te suggère les plats les plus sains en fonction de tes objectifs et intolérances.",
-      icon: <Store className="w-6 h-6" />
+      t: "3. Découvre tout", 
+      desc: "Obtenez vos calories, vos macros et détectez immédiatement les additifs toxiques cachés.",
+      icon: <Activity className="w-6 h-6" />
     }
   ];
 
   return (
-    <section id="features" className="py-24 bg-gradient-to-b from-[#050505] to-[#0a0a0a] border-t border-[#202020]">
+    <section id="how-it-works" className="py-24 bg-slate-900 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-          <span className="text-xs text-[#00FF88] font-bold font-mono uppercase tracking-widest bg-[#00FF88]/10 border border-[#00FF88]/20 px-4 py-1.5 rounded-full">
-            La vérité nutritionnelle absolue
+          <span className="text-xs text-emerald-500 font-bold font-mono uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/20 px-4 py-1.5 rounded-full shadow-sm">
+            Comment ça marche
           </span>
           <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight font-display text-white mt-4">
-            L'outil que l'industrie agroalimentaire redoute.
+            Trois étapes simples.
           </h2>
-          <p className="text-slate-400 text-sm leading-relaxed mt-4">
-            Ne te fie plus aux emballages marketing. Notre IA décompose la réalité chimique et nutritionnelle de chaque aliment.
+          <p className="text-slate-400 text-sm md:text-base leading-relaxed mt-4">
+            Ne te fie plus aux emballages marketing. Notre IA décompose la réalité chimique et nutritionnelle de chaque aliment en quelques secondes.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((item, idx) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+          
+          {/* Ligne de connexion pour Desktop */}
+          <div className="hidden md:block absolute top-[44px] left-[15%] right-[15%] h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent z-0"></div>
+
+          {steps.map((item, idx) => (
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
               key={idx} 
-              className="bg-[#111] border border-[#222] p-8 rounded-[28px] hover:border-[#00FF88]/50 transition-colors group"
+              className="bg-white/5 backdrop-blur-md border border-white/10 p-8 rounded-3xl hover:border-emerald-500/30 transition-all group relative z-10 shadow-lg"
             >
-              <div className="h-12 w-12 rounded-2xl bg-[#00FF88]/10 flex items-center justify-center text-[#00FF88] mb-6 group-hover:scale-110 transition-transform">
+              <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-6 group-hover:scale-110 transition-transform">
                 {item.icon}
               </div>
-              <h4 className="text-lg font-extrabold text-white mb-3">{item.t}</h4>
+              <h4 className="text-xl font-bold text-white mb-3">{item.t}</h4>
               <p className="text-slate-400 text-sm leading-relaxed">{item.desc}</p>
             </motion.div>
           ))}

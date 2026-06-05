@@ -720,8 +720,8 @@ export default function App() {
             }} 
             className="flex items-center gap-3 cursor-pointer group"
           >
-            <div className="h-10 w-10 overflow-hidden rounded-xl bg-gradient-to-tr from-[#00d4aa] to-[#10b981] flex items-center justify-center shadow-[0_0_20px_rgba(0,212,170,0.3)] transition-transform group-hover:scale-105">
-              <img src="/images/poulpe_neutre.png" alt="Scan My Macro Logo" className="w-full h-full object-cover scale-125" />
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-[#00d4aa] to-[#10b981] flex items-center justify-center shadow-[0_0_20px_rgba(0,212,170,0.3)] transition-transform group-hover:scale-105">
+              <Zap className="w-6 h-6 text-black fill-black/20" />
             </div>
             <div>
               <span className="text-lg font-extrabold tracking-tight font-display text-white block">

@@ -3,26 +3,27 @@ import { motion } from "motion/react";
 
 export function TestimonialsSection() {
   const testimonials = [
-    { name: "Marc T.", r: "A perdu 12kg", rating: 5, t: "Un électrochoc esthétique", desc: "Scan My Macro m'a ouvert les yeux sur les sucres cachés dans mes produits 'sains'. La prise de conscience a été brutale, mais les résultats sont là. Moins 12 kilos sans régime strict, juste en mangeant intelligemment." },
-    { name: "Dr. Sarah L.", r: "Endocrinologue", rating: 5, t: "Un outil clinique redoutable", desc: "Je recommande Scan My Macro à mes patients insulinorésistants. L'application lit derrière les étiquettes complexes et pointe les édulcorants de synthèse en rouge. Une transparence rare." },
-    { name: "Élise R.", r: "Mère de 3 enfants", rating: 5, t: "Je ne me fais plus avoir", desc: "Je pensais bien nourrir mes enfants jusqu'à ce que je scanne leurs goûters préférés. Le choc ! Aujourd'hui, je sais exactement ce qu'ils avalent. C'est sécurisant." },
-    { name: "Jonathan B.", r: "Sportif de force", rating: 5, t: "Mes macros à la perfection", desc: "J'en avais marre de passer 45 minutes par jour sur d'autres applications lourdes. Une photo de l'assiette et j'ai mes protéines. C'est l'avenir du tracking." },
-    { name: "Nadia B.", r: "Sensible au gluten", rating: 5, t: "L'application m'a sauvé", desc: "L'IA a détecté des traces d'extrait d'orge dans une barre de fitness 'sans gluten' que j'allais acheter. Impressionnant d'efficacité." },
-    { name: "Thomas C.", r: "Pré-diabétique", rating: 5, t: "Ma glycémie est enfin stable", desc: "Je scanne absolument tout. L'application m'alerte sur les index glycémiques explosifs. Mon médecin n'en revient pas des changements." }
+    { name: "Dr. Sarah L.", r: "Endocrinologue", rating: 5, t: "Un outil clinique redoutable", desc: "Je recommande Scan My Macro à mes patients insulinorésistants. L'application lit derrière les étiquettes complexes et pointe les édulcorants de synthèse en rouge.", size: "large", img: "https://i.pravatar.cc/150?u=sarah" },
+    { name: "Marc T.", r: "A perdu 12kg", rating: 5, t: "Moins 12 kilos sans régime", desc: "La prise de conscience a été brutale, mais les résultats sont là. Moins 12 kilos sans régime strict, juste en mangeant intelligemment après chaque scan.", size: "normal", img: "https://i.pravatar.cc/150?u=marc" },
+    { name: "Élise R.", r: "Mère de 3 enfants", rating: 5, t: "Sécurisant", desc: "Je pensais bien nourrir mes enfants jusqu'à ce que je scanne leurs goûters préférés.", size: "normal", img: "https://i.pravatar.cc/150?u=elise" },
+    { name: "Jonathan B.", r: "Sportif de force", rating: 5, t: "Parfait pour mes macros", desc: "Une photo de l'assiette et j'ai mes protéines. C'est l'avenir du tracking.", size: "normal", img: "https://i.pravatar.cc/150?u=jonathan" },
+    { name: "Thomas C.", r: "Pré-diabétique", rating: 5, t: "Glycémie stable", desc: "L'application m'alerte sur les index glycémiques explosifs. Impressionnant.", size: "large", img: "https://i.pravatar.cc/150?u=thomas" }
   ];
 
   return (
-    <section id="testimonials" className="py-32 bg-[#050505] border-t border-[#202020]">
+    <section id="testimonials" className="py-32 bg-slate-950 border-t border-slate-900 shadow-inner">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="text-center max-w-3xl mx-auto mb-20">
-          <span className="text-xs text-[#00FF88] font-bold font-mono uppercase tracking-widest pl-1">Rejoins les 20%</span>
+          <span className="text-xs text-emerald-500 font-bold font-mono uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/20 px-4 py-1.5 rounded-full shadow-sm">
+            Preuve Sociale
+          </span>
           <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight font-display mt-4 text-white">
             Ils ont arrêté de manger à l'aveugle.
           </h2>
         </div>
 
-        <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-x-auto pb-8 snap-x snap-mandatory hide-scrollbar">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-[minmax(0,1fr)] max-w-6xl mx-auto">
           {testimonials.map((item, idx) => (
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
@@ -30,35 +31,30 @@ export function TestimonialsSection() {
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
               key={idx} 
-              className="bg-[#0f0f0f] border border-[#222] p-8 rounded-[32px] space-y-6 relative overflow-hidden group hover:border-[#00FF88]/30 transition-colors min-w-[280px] w-[85vw] sm:w-[400px] md:w-auto shrink-0 snap-center"
+              className={`bg-slate-900 border border-slate-800 p-8 rounded-3xl space-y-6 flex flex-col justify-between group hover:border-emerald-500/30 transition-colors shadow-lg
+                ${item.size === 'large' ? 'md:col-span-2 lg:col-span-2' : ''}
+                ${idx === 0 ? 'lg:row-span-2' : ''}
+              `}
             >
-              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#00FF88]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              
-              <div className="flex items-center gap-1">
-                {[...Array(item.rating)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 text-[#00FF88] fill-[#00FF88]" />
-                ))}
-              </div>
-              <h4 className="text-lg font-extrabold text-white">"{item.t}"</h4>
-              <p className="text-slate-400 text-sm leading-relaxed italic border-l-2 border-[#222] pl-4">"{item.desc}"</p>
-              
-              <div className="flex items-center gap-3 pt-4 border-t border-[#222]">
-                <div className="h-10 w-10 rounded-full bg-[#1a1a1a] border border-[#333] flex items-center justify-center font-bold text-xs text-[#00FF88] uppercase">
-                  {item.name[0]}
+              <div className="space-y-4">
+                <div className="flex items-center gap-1">
+                  {[...Array(item.rating)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 text-emerald-400 fill-emerald-400" />
+                  ))}
                 </div>
+                <h4 className="text-xl font-bold text-white">"{item.t}"</h4>
+                <p className="text-slate-400 text-sm md:text-base leading-relaxed italic border-l-2 border-emerald-500/30 pl-4 bg-emerald-500/5 py-2 pr-2 rounded-r-lg">"{item.desc}"</p>
+              </div>
+              
+              <div className="flex items-center gap-4 pt-6 border-t border-slate-800/80 mt-auto">
+                <img src={item.img} alt={item.name} className="h-12 w-12 rounded-full border border-slate-700 shadow-sm" />
                 <div>
                   <span className="text-sm font-bold text-white block">{item.name}</span>
-                  <span className="text-xs text-[#00FF88]/70 font-mono">{item.r}</span>
+                  <span className="text-xs text-emerald-500 font-mono">{item.r}</span>
                 </div>
               </div>
             </motion.div>
           ))}
-        </div>
-
-        <div className="flex md:hidden justify-center gap-2 mt-4 pb-4">
-          <div className="w-2 h-2 rounded-full bg-[#00FF88]"></div>
-          <div className="w-2 h-2 rounded-full bg-[#333]"></div>
-          <div className="w-2 h-2 rounded-full bg-[#333]"></div>
         </div>
 
       </div>
