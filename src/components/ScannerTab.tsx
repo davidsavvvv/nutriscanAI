@@ -1,5 +1,14 @@
 import { useState, useRef, useEffect, DragEvent, ChangeEvent } from "react";
-import { Camera, Upload, AlertCircle, Sparkles, Image as ImageIcon, Video, VideoOff, RefreshCw } from "lucide-react";
+import {
+  Camera,
+  Upload,
+  AlertCircle,
+  Sparkles,
+  Image as ImageIcon,
+  Video,
+  VideoOff,
+  RefreshCw,
+} from "lucide-react";
 import { motion } from "motion/react";
 
 interface ScannerTabProps {
@@ -8,9 +17,17 @@ interface ScannerTabProps {
   setIsLoading: (loading: boolean) => void;
   plan?: string;
   freeScansUsed?: number;
+  userObjective?: string;
 }
 
-export default function ScannerTab({ onScanComplete, isLoading, setIsLoading, plan = "free", freeScansUsed = 0 }: ScannerTabProps) {
+export default function ScannerTab({
+  onScanComplete,
+  isLoading,
+  setIsLoading,
+  plan = "free",
+  freeScansUsed = 0,
+  userObjective,
+}: ScannerTabProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
@@ -91,7 +108,7 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading, pl
     } catch (err: any) {
       console.error("Camera access error:", err);
       setCameraError(
-        "Could not access camera. Please make sure camera permissions are granted or upload an image file instead."
+        "Could not access camera. Please make sure camera permissions are granted or upload an image file instead.",
       );
       setCameraActive(false);
     }
@@ -127,7 +144,7 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading, pl
 
     setIsLoading(true);
     setScanMessage("Extracting brand visual components...");
-    
+
     // Stagger loading messages for an immersive feel
     const msgs = [
       "Calibrating active additive indicators...",
@@ -149,6 +166,7 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading, pl
         body: JSON.stringify({
           image: imagePreview,
           mimeType: "image/jpeg",
+          userObjective: userObjective,
         }),
       });
 
@@ -160,16 +178,22 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading, pl
           errorMsg = data.error.message;
         } else if (data.message) {
           errorMsg = data.message;
-        } else if (typeof data.error === 'string') {
+        } else if (typeof data.error === "string") {
           errorMsg = data.error;
         } else {
           errorMsg = JSON.stringify(data);
         }
-        
-        if (resp.status === 503 || errorMsg.includes("high demand") || errorMsg.includes("UNAVAILABLE")) {
-          throw new Error("L'intelligence artificielle est très sollicitée en ce moment. Veuillez réessayer dans quelques instants.");
+
+        if (
+          resp.status === 503 ||
+          errorMsg.includes("high demand") ||
+          errorMsg.includes("UNAVAILABLE")
+        ) {
+          throw new Error(
+            "L'intelligence artificielle est très sollicitée en ce moment. Veuillez réessayer dans quelques instants.",
+          );
         }
-        
+
         throw new Error(errorMsg);
       }
 
@@ -180,7 +204,6 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading, pl
         scannedAt: new Date().toISOString(),
         imageUrl: imagePreview,
       });
-
     } catch (err: any) {
       console.error("Scan API Error:", err);
       alert(`Erreur: ${err.message || "Une erreur inattendue est survenue."}`);
@@ -192,13 +215,13 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading, pl
 
   return (
     <div className="flex flex-col gap-6">
-      
       {/* SCAN BUDGET PROGRESS BAR (Only if free or starter) */}
       {(plan === "free" || plan === "starter") && (
         <div className="bg-[#111] border border-[#2a2a2a] p-4 rounded-3xl animate-in fade-in duration-500 mb-2">
           <div className="flex justify-between items-center mb-2">
             <span className="text-xs font-bold text-slate-300 uppercase tracking-wider font-display flex items-center gap-2">
-              📸 Scans {plan === "starter" ? "Starter" : "Gratuits"} {freeScansUsed}/{plan === "starter" ? 20 : 5}
+              📸 Scans {plan === "starter" ? "Starter" : "Gratuits"}{" "}
+              {freeScansUsed}/{plan === "starter" ? 20 : 5}
             </span>
             <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white/5 text-slate-400">
               {(plan === "starter" ? 20 : 5) - freeScansUsed} restants
@@ -208,24 +231,24 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading, pl
             {Array.from({ length: plan === "starter" ? 20 : 5 }).map((_, i) => {
               const active = i < freeScansUsed;
               const limit = plan === "starter" ? 20 : 5;
-              let color = 'bg-[#00FF88]';
-              if (freeScansUsed >= limit - 1) color = 'bg-rose-500';
-              else if (freeScansUsed === limit - 2) color = 'bg-amber-400';
+              let color = "bg-[#00FF88]";
+              if (freeScansUsed >= limit - 1) color = "bg-rose-500";
+              else if (freeScansUsed === limit - 2) color = "bg-amber-400";
 
               return (
-                <div 
-                  key={i} 
-                  className={`flex-1 h-full border-r border-[#111] last:border-r-0 transition-all duration-500 ${active ? color : 'bg-[#222]'}`} 
+                <div
+                  key={i}
+                  className={`flex-1 h-full border-r border-[#111] last:border-r-0 transition-all duration-500 ${active ? color : "bg-[#222]"}`}
                 />
               );
             })}
           </div>
-          {(freeScansUsed === (plan === "starter" ? 18 : 3)) && (
+          {freeScansUsed === (plan === "starter" ? 18 : 3) && (
             <p className="text-[11px] text-amber-400/80 mt-2 font-medium flex items-center gap-1.5 animate-pulse">
               ✨ Tu adores ScanMyMacros ? Plus que 2 scans...
             </p>
           )}
-          {(freeScansUsed === (plan === "starter" ? 19 : 4)) && (
+          {freeScansUsed === (plan === "starter" ? 19 : 4) && (
             <p className="text-[11px] text-rose-400 mt-2 font-bold flex items-center gap-1.5 animate-[pulse_1.5s_infinite]">
               ⚠️ Dernier scan disponible !
             </p>
@@ -239,7 +262,7 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading, pl
       )}
 
       {/* Scanner Box container */}
-      <div 
+      <div
         className={`relative w-full flex flex-col items-center justify-center transition-all ${
           dragActive ? "opacity-70 scale-[0.98]" : ""
         }`}
@@ -261,10 +284,10 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading, pl
         {/* 1. Camera live active stream */}
         {cameraActive && (
           <div className="w-full aspect-video relative z-10 flex flex-col rounded-[24px] overflow-hidden bg-black mb-4 mt-2 border border-slate-800">
-            <video 
-              ref={videoRef} 
-              playsInline 
-              muted 
+            <video
+              ref={videoRef}
+              playsInline
+              muted
               className="w-full h-full object-cover"
             />
             {/* Camera action HUD overlay */}
@@ -290,19 +313,20 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading, pl
         {/* 2. Image preview stage */}
         {imagePreview ? (
           <div className="w-full relative z-10 flex flex-col items-center p-6 bg-[#141414] rounded-[24px] border-2 border-slate-800 mt-2">
-            <img 
-              src={imagePreview} 
-              alt="Scan Preview" 
+            <img
+              src={imagePreview}
+              alt="Scan Preview"
               className="max-h-[300px] w-auto object-contain rounded-xl border border-[#2a2a2a] shadow-lg mb-6"
             />
-            
+
             <div className="flex gap-4 w-full justify-center">
               <button
                 onClick={triggerScan}
                 disabled={isLoading}
                 className="flex-1 bg-[#00FF88] text-black font-bold font-display text-xs uppercase tracking-wider py-4 px-5 rounded-[16px] flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(0,255,136,0.15)] disabled:opacity-40 cursor-pointer active:scale-[0.98] transition-all"
               >
-                <Sparkles className="w-4 h-4 animate-spin-slow" /> {isLoading ? "Analyse..." : "Lancer l'IA"}
+                <Sparkles className="w-4 h-4 animate-spin-slow" />{" "}
+                {isLoading ? "Analyse..." : "Lancer l'IA"}
               </button>
 
               <button
@@ -321,94 +345,116 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading, pl
 
         {/* 3. Drag Drop and Selection Default Interface */}
         {!cameraActive && !imagePreview && (
-          <div className="w-full text-center flex flex-col gap-4 mt-2">
-            <button
-              onClick={() => {
-                 const limit = plan === "starter" ? 20 : 5;
-                 if ((plan === "free" || plan === "starter") && freeScansUsed >= limit) {
-                    alert("Limite de scans atteinte. Veuillez passer à Pro.");
-                    return;
-                 }
-                 fileInputRef.current?.click();
-              }}
-              className={`w-full h-[120px] bg-[#00FF88] hover:bg-[#00e67a] active:scale-[0.98] text-black rounded-[24px] flex flex-col items-center justify-center shadow-[0_0_30px_rgba(0,255,136,0.2)] transition-all cursor-pointer border border-[#00d4aa] ${((plan === "free" || plan === "starter") && freeScansUsed >= (plan === "starter" ? 20 : 5)) ? "opacity-50 grayscale" : ""}`}
-            >
-              <span className="text-4xl mb-1">📸</span>
-              <span className="font-extrabold text-2xl font-display tracking-wider block">Prendre une photo</span>
-              <span className="text-xs font-semibold opacity-70 mt-0.5">Pointe vers l'étiquette ou l'aliment</span>
-            </button>
+          <div
+            onClick={() => {
+              const limit = plan === "starter" ? 20 : 5;
+              if (
+                (plan === "free" || plan === "starter") &&
+                freeScansUsed >= limit
+              ) {
+                alert("Limite de scans atteinte. Veuillez passer à Pro.");
+                return;
+              }
+              uploadInputRef.current?.click();
+            }}
+            className={`w-full text-center flex flex-col items-center justify-center p-12 mt-2 transition-all cursor-pointer bg-slate-900/40 backdrop-blur-sm border-2 ${dragActive ? "border-emerald-500 bg-slate-900/60" : "border-dashed border-white/20"} rounded-3xl hover:border-emerald-500/50 hover:bg-slate-900/60 group`}
+          >
+            <div className="w-20 h-20 mb-4 bg-gradient-to-br from-emerald-500/20 to-teal-600/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Camera className="w-8 h-8 text-emerald-400" />
+            </div>
+
+            <h3 className="text-xl font-display font-bold text-white mb-2">
+              Glissez une photo ici
+            </h3>
+            <p className="text-sm text-slate-400 font-medium mb-6">
+              ou cliquez pour parcourir vos fichiers
+            </p>
 
             <button
-              onClick={() => {
-                 const limit = plan === "starter" ? 20 : 5;
-                 if ((plan === "free" || plan === "starter") && freeScansUsed >= limit) {
-                    alert("Limite de scans atteinte. Veuillez passer à Pro.");
-                    return;
-                 }
-                 uploadInputRef.current?.click();
+              onClick={(e) => {
+                e.stopPropagation();
+                const limit = plan === "starter" ? 20 : 5;
+                if (
+                  (plan === "free" || plan === "starter") &&
+                  freeScansUsed >= limit
+                ) {
+                  alert("Limite de scans atteinte. Veuillez passer à Pro.");
+                  return;
+                }
+                fileInputRef.current?.click();
               }}
-              className={`w-full h-[54px] bg-[#1a1a1a] hover:bg-[#222] border-2 border-[#2a2a2a] text-slate-300 font-bold text-[13px] rounded-[16px] flex items-center justify-center transition-all cursor-pointer ${((plan === "free" || plan === "starter") && freeScansUsed >= (plan === "starter" ? 20 : 5)) ? "opacity-50" : ""}`}
+              className="bg-white/10 hover:bg-white/15 border border-white/10 text-white font-bold text-sm px-6 py-3 rounded-full flex items-center gap-2 transition-all"
             >
-              <Upload className="w-4 h-4 mr-2 opacity-50" /> Télécharger une photo
+              <Upload className="w-4 h-4 text-emerald-400" /> Prendre une photo
             </button>
           </div>
         )}
 
         {/* Invisible file input for direct camera capture */}
-        <input 
+        <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
           capture="environment"
           className="hidden"
           onChange={handleFileInputChange}
-          disabled={(plan === "free" || plan === "starter") && freeScansUsed >= (plan === "starter" ? 20 : 5)}
+          disabled={
+            (plan === "free" || plan === "starter") &&
+            freeScansUsed >= (plan === "starter" ? 20 : 5)
+          }
         />
 
         {/* Secondary file input for standard gallery/file picker upload */}
-        <input 
+        <input
           ref={uploadInputRef}
           type="file"
           accept="image/*"
           className="hidden"
           onChange={handleFileInputChange}
-          disabled={(plan === "free" || plan === "starter") && freeScansUsed >= (plan === "starter" ? 20 : 5)}
+          disabled={
+            (plan === "free" || plan === "starter") &&
+            freeScansUsed >= (plan === "starter" ? 20 : 5)
+          }
         />
       </div>
 
       {/* BLOCKING SCREEN IF LIMIT REACHED */}
-      {(plan === "free" || plan === "starter") && freeScansUsed >= (plan === "starter" ? 20 : 5) && (
-        <div className="absolute inset-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md rounded-[32px] flex flex-col justify-center items-center p-6 text-center shadow-2xl border border-white/10 animate-in fade-in zoom-in-95 duration-500 overflow-hidden">
-          
-          <motion.div 
-             className="w-20 h-20 mb-6 bg-rose-500/10 rounded-full flex justify-center items-center filter drop-shadow-xl"
-             animate={{ rotate: [-3, 3, -3] }}
-             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          >
-             <AlertCircle className="w-10 h-10 text-rose-500" />
-          </motion.div>
+      {(plan === "free" || plan === "starter") &&
+        freeScansUsed >= (plan === "starter" ? 20 : 5) && (
+          <div className="absolute inset-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md rounded-[32px] flex flex-col justify-center items-center p-6 text-center shadow-2xl border border-white/10 animate-in fade-in zoom-in-95 duration-500 overflow-hidden">
+            <motion.div
+              className="w-20 h-20 mb-6 bg-rose-500/10 rounded-full flex justify-center items-center filter drop-shadow-xl"
+              animate={{ rotate: [-3, 3, -3] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <AlertCircle className="w-10 h-10 text-rose-500" />
+            </motion.div>
 
-          <h3 className="text-2xl font-black font-display text-white tracking-tight mb-2">
-            Tu as utilisé tes 5 scans gratuits !
-          </h3>
-          <p className="text-slate-400 font-medium mb-8">
-            Passe au Pro pour scanner illimité
-          </p>
+            <h3 className="text-2xl font-black font-display text-white tracking-tight mb-2">
+              Tu as utilisé tes 5 scans gratuits !
+            </h3>
+            <p className="text-slate-400 font-medium mb-8">
+              Passe au Pro pour scanner illimité
+            </p>
 
-          <button 
-             onClick={() => document.dispatchEvent(new CustomEvent('openPaywall'))}
-             className="w-full h-[56px] min-h-[56px] bg-purple-600 hover:bg-purple-500 active:scale-[0.98] transition-all rounded-[16px] text-white font-extrabold text-base flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(147,51,234,0.3)]"
-          >
-             Essayer Pro 7 jours gratuits →
-          </button>
-        </div>
-      )}
+            <button
+              onClick={() =>
+                document.dispatchEvent(new CustomEvent("openPaywall"))
+              }
+              className="w-full h-[56px] min-h-[56px] bg-purple-600 hover:bg-purple-500 active:scale-[0.98] transition-all rounded-[16px] text-white font-extrabold text-base flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(147,51,234,0.3)]"
+            >
+              Essayer Pro 7 jours gratuits →
+            </button>
+          </div>
+        )}
 
       {/* Loading message HUD */}
       {isLoading && (
         <div className="text-center bg-slate-50 max-w-md mx-auto p-4 rounded-2xl border border-slate-200 animate-pulse text-slate-800 shadow-sm">
           <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-slate-950" />
-          <p className="text-xs font-mono uppercase tracking-widest font-bold text-slate-900">Scanning Processing Engine</p>
+          <p className="text-xs font-mono uppercase tracking-widest font-bold text-slate-900">
+            Scanning Processing Engine
+          </p>
           <p className="text-xs text-slate-500 mt-1">{scanMessage}</p>
         </div>
       )}
@@ -418,12 +464,13 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading, pl
         <div className="bg-rose-50 border border-rose-100 text-rose-800 p-4 rounded-xl max-w-xl mx-auto flex items-start gap-2 text-xs">
           <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
           <div>
-            <span className="font-bold block uppercase tracking-wider mb-0.5">Camera Loading Blocked</span>
+            <span className="font-bold block uppercase tracking-wider mb-0.5">
+              Camera Loading Blocked
+            </span>
             {cameraError}
           </div>
         </div>
       )}
-
     </div>
   );
 }

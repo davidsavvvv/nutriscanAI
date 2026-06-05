@@ -1,5 +1,5 @@
 import { ScanResult as ScanResultType } from "../types";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Dumbbell, Flame } from "lucide-react";
 import ScanResult from "./ScanResult";
 
 interface ScanResultPanelProps {
@@ -7,9 +7,10 @@ interface ScanResultPanelProps {
   onClear: () => void;
   plan?: string;
   onUnlock?: () => void;
+  profileGoals?: string[];
 }
 
-export default function ScanResultPanel({ result, onClear, plan = "free", onUnlock }: ScanResultPanelProps) {
+export default function ScanResultPanel({ result, onClear, plan = "free", onUnlock, profileGoals = [] }: ScanResultPanelProps) {
   // Extract numerical scores from representations like "8/10" or "8"
   const getScoreNumber = (scoreStr?: string) => {
     if (!scoreStr) return 5;
@@ -21,6 +22,10 @@ export default function ScanResultPanel({ result, onClear, plan = "free", onUnlo
   const healthScore = getScoreNumber(result.health_score);
   const numericScoreOutOf100 = healthScore <= 10 ? healthScore * 10 : healthScore;
   
+  const isMuscleGoal = profileGoals.includes("💪 Build muscle");
+  const isWeightGoal = profileGoals.includes("🏋️ Lose weight");
+  const showBoth = !isMuscleGoal && !isWeightGoal;
+
   // Score Colors
   const getScoreColor = (score: number) => {
     if (score >= 7) return "#00FF88"; // Vert
@@ -103,6 +108,61 @@ export default function ScanResultPanel({ result, onClear, plan = "free", onUnlo
       <div className="w-full mb-6 relative z-10">
         <ScanResult score={numericScoreOutOf100} />
       </div>
+
+      {/* CONSEILS PERSONNALISÉS */}
+      {((result.conseil_muscle || result.conseil_poids) && !result.isLocked) && (
+        <div className="w-full flex flex-col gap-4 mb-6 relative z-10 text-left animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <h3 className="text-white font-bold text-lg px-2">Conseils personnalisés</h3>
+          
+          {(isMuscleGoal || showBoth) && result.conseil_muscle && (
+            <div className="bg-blue-950/40 border border-blue-900/50 rounded-[24px] p-5 shadow-lg">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="bg-blue-500/20 p-2 rounded-xl text-blue-400">
+                  <Dumbbell className="w-5 h-5" />
+                </div>
+                <h4 className="text-blue-100 font-bold">Pour ta prise de muscle</h4>
+              </div>
+              <p className="text-sm text-blue-200/80 leading-relaxed mb-4">
+                {result.conseil_muscle}
+              </p>
+              {result.combo_suggestions && result.combo_suggestions.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {result.combo_suggestions.map((combo: string, i: number) => (
+                    <span key={i} className="bg-green-500/20 text-green-400 border border-green-500/30 text-xs font-bold px-3 py-1.5 rounded-full inline-flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                      {combo}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {(isWeightGoal || showBoth) && result.conseil_poids && (
+            <div className="bg-emerald-950/40 border border-emerald-900/50 rounded-[24px] p-5 shadow-lg">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="bg-orange-500/20 p-2 rounded-xl text-orange-400">
+                  <Flame className="w-5 h-5" />
+                </div>
+                <h4 className="text-emerald-100 font-bold">Pour ta perte de poids</h4>
+              </div>
+              <p className="text-sm text-emerald-200/80 leading-relaxed mb-4">
+                {result.conseil_poids}
+              </p>
+              {result.combo_suggestions && result.combo_suggestions.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {result.combo_suggestions.map((combo: string, i: number) => (
+                    <span key={i} className="bg-orange-500/20 text-orange-400 border border-orange-500/30 text-xs font-bold px-3 py-1.5 rounded-full inline-flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                      {combo}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Extra Detail Button if useful (e.g., locked) */}
       {(plan === "free" || result.isLocked) && (

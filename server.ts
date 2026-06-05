@@ -41,7 +41,7 @@ async function startServer() {
 
   app.post("/api/checkout-session", async (req, res) => {
     try {
-      let { priceId, userId, customer_email } = req.body;
+      let { priceId, userId, customer_email, affiliate_ref } = req.body;
       const stripe = getStripe();
       
       if (priceId === "starter" && process.env.STRIPE_STARTER_PRICE_ID) {
@@ -64,6 +64,9 @@ async function startServer() {
           trial_period_days: 7,
         },
         payment_method_collection: "always",
+        metadata: {
+          affiliate_ref: affiliate_ref || "",
+        },
       };
       
       if (customer_email) {
@@ -147,6 +150,33 @@ async function startServer() {
                     plan: plan,
                     status: subscription.status,
                 });
+
+            // Process Affiliate Conversion
+            const affiliate_ref = session.metadata?.affiliate_ref;
+            if (affiliate_ref && (plan === "pro" || plan === "expert" || plan === "starter")) {
+               const priceAmount = subscription.items.data[0].price.unit_amount; // amount in cents
+               if (priceAmount) {
+                  const revShareCents = Math.floor(priceAmount * 0.3);
+                  const revShareEuros = revShareCents / 100;
+
+                  // Get affiliate
+                  const { data: affiliate } = await supabaseAdmin
+                    .from("affiliates")
+                    .select("*")
+                    .eq("code", affiliate_ref)
+                    .single();
+                  
+                  if (affiliate) {
+                     await supabaseAdmin
+                        .from("affiliates")
+                        .update({
+                           conversions: affiliate.conversions + 1,
+                           earnings_pending: parseFloat(affiliate.earnings_pending) + revShareEuros
+                        })
+                        .eq("id", affiliate.id);
+                  }
+               }
+            }
         }
       } else if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
         const subscription = event.data.object as Stripe.Subscription;
@@ -201,10 +231,141 @@ async function startServer() {
     });
   });
 
+  
+
+  // AFFILIATE SYSTEM ROUTES
+  app.post("/api/affiliate/track", async (req, res) => {
+     try {
+        const { ref } = req.body;
+        if (!ref) return res.status(400).json({ error: "No ref provided" });
+        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || "unknown";
+        
+        const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (!supabaseUrl || !supabaseServiceKey) return res.status(500).json({ error: "Config missing" });
+
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
+        const { data: affiliate } = await supabaseAdmin.from("affiliates").select("*").eq("code", ref).single();
+        if (affiliate) {
+           await supabaseAdmin.from("affiliates").update({ clicks: affiliate.clicks + 1 }).eq("id", affiliate.id);
+           await supabaseAdmin.from("affiliate_clicks").insert({ affiliate_code: ref, ip_hash: String(ip) });
+           return res.json({ success: true });
+        }
+        res.json({ success: false, message: "Affiliate not found" });
+     } catch(e) {
+        res.status(500).json({ error: String(e) });
+     }
+  });
+
+  app.get("/api/affiliates/stats", async (req, res) => {
+     try {
+        const token = req.headers.authorization?.split(" ")[1];
+        if (!token) return res.status(401).json({ error: "Unauthorized" });
+
+        const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabaseAdmin = createClient(supabaseUrl!, supabaseServiceKey!);
+        
+        const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+        if (!user) return res.status(401).json({ error: "Invalid token" });
+
+        const { data: affiliate } = await supabaseAdmin.from("affiliates").select("*").eq("user_id", user.id).single();
+        
+        return res.json({ affiliate });
+     } catch (e) {
+        res.status(500).json({ error: String(e) });
+     }
+  });
+
+  app.post("/api/admin/affiliates", async (req, res) => {
+     try {
+        const token = req.headers.authorization?.split(" ")[1];
+        if (!token) return res.status(401).json({ error: "Unauthorized" });
+
+        const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabaseAdmin = createClient(supabaseUrl!, supabaseServiceKey!);
+        
+        const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+        if (!user || user.email !== "davidsauvaget69@gmail.com") {
+           return res.status(403).json({ error: "Forbidden. Admin only." });
+        }
+
+        const { code, name, email, userId } = req.body;
+        const { data, error } = await supabaseAdmin.from("affiliates").insert({
+           code, name, email, user_id: userId || null
+        }).select().single();
+
+        if (error) throw error;
+        res.json({ affiliate: data });
+     } catch (e: any) {
+        res.status(500).json({ error: e.message });
+     }
+  });
+
+  app.get("/api/admin/affiliates", async (req, res) => {
+     try {
+        const token = req.headers.authorization?.split(" ")[1];
+        if (!token) return res.status(401).json({ error: "Unauthorized" });
+
+        const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabaseAdmin = createClient(supabaseUrl!, supabaseServiceKey!);
+        
+        const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+        if (!user || user.email !== "davidsauvaget69@gmail.com") {
+           return res.status(403).json({ error: "Forbidden. Admin only." });
+        }
+
+        const { data } = await supabaseAdmin.from("affiliates").select("*").order("created_at", { ascending: false });
+        res.json({ affiliates: data || [] });
+     } catch (e: any) {
+        res.status(500).json({ error: e.message });
+     }
+  });
+
+  app.post("/api/admin/affiliates/:id/pay", async (req, res) => {
+      try {
+        const token = req.headers.authorization?.split(" ")[1];
+        const { id } = req.params;
+        if (!token) return res.status(401).json({ error: "Unauthorized" });
+
+        const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabaseAdmin = createClient(supabaseUrl!, supabaseServiceKey!);
+        
+        const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+        if (!user || user.email !== "davidsauvaget69@gmail.com") {
+           return res.status(403).json({ error: "Forbidden. Admin only." });
+        }
+
+        const { data: affiliate } = await supabaseAdmin.from("affiliates").select("*").eq("id", id).single();
+        if(!affiliate) return res.status(404).json({error: "Not found"});
+        
+        const pending = parseFloat(affiliate.earnings_pending);
+        const total = parseFloat(affiliate.earnings_total);
+        
+        await supabaseAdmin.from("affiliates").update({
+           earnings_pending: 0,
+           earnings_total: total + pending
+        }).eq("id", id);
+        res.json({ success: true });
+     } catch (e: any) {
+        res.status(500).json({ error: e.message });
+     }
+  });
+
+
   // API Route for nutrition scanning
   app.post("/api/scan", async (req, res) => {
     try {
-      const { image, mimeType } = req.body;
+      const { image, mimeType, userObjective } = req.body;
       if (!image) {
         return res.status(400).json({ error: "No image data provided" });
       }
@@ -224,6 +385,8 @@ async function startServer() {
       const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
       const resolvedMimeType = mimeType || "image/jpeg";
 
+      const objectiveInstruction = userObjective ? `Prends en compte cet objectif de l'utilisateur : ${userObjective}` : "";
+
       const prompt = `Tu es un expert en nutrition et en science alimentaire, spécialisé dans les produits vendus en France.
 Quand l'utilisateur envoie une photo d'un aliment (produit industriel, fruit, légume, viande, plat cuisiné...), tu dois analyser et retourner une fiche nutritionnelle complète et détaillée.
 
@@ -232,6 +395,8 @@ Quand l'utilisateur envoie une photo d'un aliment (produit industriel, fruit, l�
 - Si c'est un aliment brut utilise les valeurs officielles du Ciqual
 - Ne jamais inventer des données, toujours être précis et honnête
 - Mentionner les allergènes présents dans la composition
+
+${objectiveInstruction}
 
 Return the response EXACTLY in this JSON format mapping exactly to the concepts requested:
 {
@@ -258,6 +423,9 @@ Return the response EXACTLY in this JSON format mapping exactly to the concepts 
     "sport": "✅ Oui / ⚠️ Avec modération / ❌ Non",
     "kids": "✅ Oui / ⚠️ Avec modération / ❌ Non"
   },
+  "conseil_muscle": "Conseil spécifique pour la musculation/prise de masse avec cet aliment",
+  "conseil_poids": "Conseil spécifique pour la perte de poids avec cet aliment",
+  "combo_suggestions": ["aliment à combiner 1", "aliment à combiner 2", "aliment à combiner 3"],
   "origin": "France / Europe / Monde",
   "transformation_level": "🟢 Peu transformé / 🟡 Transformé / 🔴 Ultra-transformé",
   "health_score": "Donne un score de 1 à 5 sous la forme ⭐ 1/5 à ⭐⭐⭐⭐⭐ 5/5",
@@ -315,6 +483,9 @@ Return the response EXACTLY in this JSON format mapping exactly to the concepts 
                 },
                 required: ["weight_loss", "muscle_gain", "general_health", "sport", "kids"],
               },
+              conseil_muscle: { type: Type.STRING },
+              conseil_poids: { type: Type.STRING },
+              combo_suggestions: { type: Type.ARRAY, items: { type: Type.STRING } },
               origin: { type: Type.STRING },
               transformation_level: { type: Type.STRING },
               health_score: { type: Type.STRING },
@@ -332,6 +503,9 @@ Return the response EXACTLY in this JSON format mapping exactly to the concepts 
               "alerts",
               "vitamins_minerals",
               "objectives",
+              "conseil_muscle",
+              "conseil_poids",
+              "combo_suggestions",
               "origin",
               "transformation_level",
               "health_score",

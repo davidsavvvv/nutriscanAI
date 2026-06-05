@@ -60,6 +60,9 @@ export interface ScanResult {
   transformation_level?: string;
   health_score_explanation?: string;
   custom_advice?: string;
+  conseil_muscle?: string;
+  conseil_poids?: string;
+  combo_suggestions?: string[];
 }
 
 export interface SampleProduct {
