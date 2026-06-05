@@ -155,7 +155,22 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading, pl
       const data = await resp.json();
 
       if (!resp.ok) {
-        throw new Error(data.message || data.error || "Analysis failed");
+        let errorMsg = "L'analyse a échoué.";
+        if (data.error && data.error.message) {
+          errorMsg = data.error.message;
+        } else if (data.message) {
+          errorMsg = data.message;
+        } else if (typeof data.error === 'string') {
+          errorMsg = data.error;
+        } else {
+          errorMsg = JSON.stringify(data);
+        }
+        
+        if (resp.status === 503 || errorMsg.includes("high demand") || errorMsg.includes("UNAVAILABLE")) {
+          throw new Error("L'intelligence artificielle est très sollicitée en ce moment. Veuillez réessayer dans quelques instants.");
+        }
+        
+        throw new Error(errorMsg);
       }
 
       clearInterval(interval);
@@ -168,7 +183,7 @@ export default function ScannerTab({ onScanComplete, isLoading, setIsLoading, pl
 
     } catch (err: any) {
       console.error("Scan API Error:", err);
-      alert(`Nutrition scan failed: ${err.message || "An unexpected error occurred."}`);
+      alert(`Erreur: ${err.message || "Une erreur inattendue est survenue."}`);
     } finally {
       clearInterval(interval);
       setIsLoading(false);

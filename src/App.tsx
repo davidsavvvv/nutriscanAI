@@ -19,7 +19,7 @@ import {
   Trash2, CheckCircle, Calendar, AlertCircle, RefreshCw, ChevronRight, 
   Play, Check, X, Shield, Star, HelpCircle, ArrowUp, Menu, 
   ChevronDown, Award, Droplets, CreditCard, ChevronLeft, Plus, 
-  Users, Download, Eye, FileText, MessageSquare, Heart 
+  Users, Download, Eye, FileText, MessageSquare, Heart, Lock
 } from "lucide-react";
 
 import PremiumPaywallModal from "./components/PremiumPaywallModal";
@@ -2169,14 +2169,11 @@ export default function App() {
               <div className="mb-4 flex flex-col items-center group">
                 {/* Transform animation container */}
                 <div className="w-24 h-24 sm:w-32 sm:h-32 mb-2 relative flex items-center justify-center text-7xl select-none group-hover:scale-110 transition-transform duration-500 overflow-hidden">
-                   <div className="absolute inset-0 flex items-center justify-center transition-all duration-1000 opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100">
-                     <img src="/octopus-4.png" alt="Octopus Muscular" className="w-full h-full object-contain" onError={(e) => (e.currentTarget.style.display='none')} />
-                     <span className="text-6xl absolute" style={{ display: 'none' }}>💪🐙</span>
-                     <span className="text-6xl" style={{ display: 'none' }}>💪🐙</span>
+                   <div className="absolute inset-0 flex items-center justify-center transition-all duration-1000 opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100 bg-[#1a1a1a] rounded-full border-4 border-[#00FF88]/30">
+                     <Flame className="w-16 h-16 sm:w-20 sm:h-20 text-[#00FF88]" />
                    </div>
-                   <div className="absolute inset-0 flex items-center justify-center transition-all duration-1000 opacity-100 scale-100 group-hover:opacity-0 group-hover:scale-150">
-                     <img src="/octopus-2.png" alt="Octopus Sad" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.display='none'; e.currentTarget.nextElementSibling!.setAttribute('style', 'display:block')} } />
-                     <span className="text-6xl absolute" style={{ display: 'none' }}>🥺🐙</span>
+                   <div className="absolute inset-0 flex items-center justify-center transition-all duration-1000 opacity-100 scale-100 group-hover:opacity-0 group-hover:scale-150 bg-[#141414] rounded-full border-4 border-[#2a2a2a]">
+                     <Lock className="w-16 h-16 sm:w-20 sm:h-20 text-slate-500" />
                    </div>
                 </div>
                 <div className="bg-[#141414] border border-[#2a2a2a] px-5 py-3 rounded-2xl relative inline-block">

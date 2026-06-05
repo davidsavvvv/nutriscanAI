@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, CheckCircle2, ShieldAlert, Zap, TrendingUp, RefreshCw, Star, Layers } from 'lucide-react';
+import { X, CheckCircle2, ShieldAlert, Zap, TrendingUp, RefreshCw, Star, Layers, Crown } from 'lucide-react';
 
 interface PremiumPaywallModalProps {
   onClose: () => void;
@@ -82,29 +82,16 @@ export default function PremiumPaywallModal({ onClose, userId, userEmail, curren
 
           <div className="mx-auto w-24 h-24 mb-6 relative z-10">
             {isPro ? (
-              <div className="absolute inset-0 flex items-center justify-center text-7xl animate-bounce drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]">
-                💪
-                <span className="absolute -top-4 text-4xl animate-pulse">👑</span>
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-tr from-amber-400 to-amber-600 rounded-2xl drop-shadow-[0_0_15px_rgba(255,215,0,0.5)] border border-amber-300">
+                <Crown className="w-12 h-12 text-black" />
               </div>
             ) : (
                <div 
-                className="w-full h-full text-[80px] flex items-center justify-center animate-[muscleTransform_4s_ease-in-out_infinite]"
+                className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-[#00d4aa] to-[#10b981] rounded-2xl shadow-[0_0_20px_rgba(0,212,170,0.4)] animate-pulse"
               >
-                {/* Visual swap handled by CSS content replacement */}
-                <div className="octopus-icon relative"></div>
+                <Zap className="w-12 h-12 text-black fill-black/20" />
               </div>
             )}
-            <style dangerouslySetInnerHTML={{__html: `
-              .octopus-icon::before {
-                content: "🐙";
-                animation: chubbyToMuscular 3s infinite;
-              }
-              @keyframes chubbyToMuscular {
-                0%, 40% { content: "🐙"; filter: grayscale(50%); transform: scale(0.9); }
-                50%, 90% { content: "🦑💪"; filter: grayscale(0%) drop-shadow(0 0 15px rgba(0,255,136,0.6)); transform: scale(1.1); }
-                100% { content: "🐙"; filter: grayscale(50%); transform: scale(0.9); }
-              }
-            `}} />
           </div>
 
           <h2 className="text-3xl sm:text-5xl font-black text-white font-display tracking-tight mb-4 select-none relative z-10">
